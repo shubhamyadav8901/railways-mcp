@@ -570,6 +570,11 @@ describe("tools with ConfirmTkt as the primary source", () => {
       filled_from: { zone: "test-official", lat: "test-official", lon: "test-official" },
     });
     expect(r.stations[0].filled_from.state).toBeUndefined();
+    // a half-known coordinate pair is never overwritten
+    const { fillGaps } = await import("../src/tools/stations.js");
+    const base = buildContext(loadConfig({ GEOCODER: "off" }), { timetables: [sampleProvider()] });
+    const half = fillGaps(base, { code: "BBB", name: "Bravo", state: null, zone: null, lat: 10, lon: null });
+    expect(half).toMatchObject({ lat: 10, lon: null, zone: "NR", filled_from: { zone: "test-official", state: "test-official" } });
     // without the setting nothing is filled
     const d = await ctPrimary({ primary: "official" });
     const s = parse(await d.callTool({ name: "search_stations", arguments: { query: "bravo" } }));

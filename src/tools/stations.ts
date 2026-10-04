@@ -58,7 +58,7 @@ export function fillGaps(ctx: AppContext, st: Station): Station & { filled_from?
         filled[k] = t.info.id;
       }
     }
-    if ((out.lat === null || out.lon === null) && match.lat !== null && match.lon !== null) {
+    if (out.lat === null && out.lon === null && match.lat !== null && match.lon !== null) {
       out.lat = match.lat;
       out.lon = match.lon;
       filled.lat = filled.lon = t.info.id;

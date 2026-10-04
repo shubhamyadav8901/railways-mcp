@@ -10,6 +10,8 @@ import { NtesProvider } from "./providers/unofficial/ntes.js";
 import { RailRadarProvider } from "./providers/unofficial/railradar.js";
 import { USER_AGENT } from "./lib/http.js";
 import { StationCodes } from "./core/station-codes.js";
+import { RailError, isRailError } from "./core/errors.js";
+import type { TrainsBetweenSource } from "./providers/types.js";
 
 export interface Config {
   port: number;
@@ -98,6 +100,27 @@ export interface AppContext {
 /** Datasets in priority order: official first, archived fallback last. */
 const TIMETABLE_FILES = ["tag2026.json.gz", "datameet2016.json.gz"];
 
+/**
+ * ConfirmTkt's trains search at the head of the chain. ConfirmTkt rejects dates it doesn't search
+ * (past dates) with INVALID_INPUT, which stops the chain; the timetable after it can still answer,
+ * so that rejection becomes UNSUPPORTED here.
+ */
+function headOfChain(ct: ConfirmTktProvider): TrainsBetweenSource {
+  return {
+    info: ct.info,
+    trainsBetween: async (q) => {
+      try {
+        return await ct.trainsBetween(q);
+      } catch (e) {
+        if (isRailError(e) && e.code === "INVALID_INPUT" && e.provider === ct.info.id) {
+          throw new RailError("UNSUPPORTED", e.message, e.provider);
+        }
+        throw e;
+      }
+    },
+  };
+}
+
 export function buildContext(cfg: Config, overrides: { timetables?: LocalTimetableProvider[]; codes?: StationCodes } = {}): AppContext {
   const codes = overrides.codes ?? StationCodes.fromFile(join(cfg.dataDir, "station_equivalences.json"));
   const timetables =
@@ -148,7 +171,7 @@ export function buildContext(cfg: Config, overrides: { timetables?: LocalTimetab
   if (ct && !ctFirst) r.register("schedule", ct); // third current schedule source for cross-checks
   for (const t of archived) r.register("schedule", t);
 
-  if (ctFirst) r.register("trains_between", ct);
+  if (ctFirst) r.register("trains_between", headOfChain(ct));
   for (const t of official) r.register("trains_between", t);
   if (ct && !ctFirst) r.register("trains_between", ct);
   if (er) r.register("trains_between", er);

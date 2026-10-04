@@ -64,6 +64,20 @@ describe("PRIMARY_SOURCE", () => {
   });
 });
 
+describe("ConfirmTkt at the head of the trains-between chain", () => {
+  it("a date ConfirmTkt rejects (past) falls through to the official timetable instead of stopping the chain", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ error: { code: 4002, message: "Journey date cannot be in the past" } }))),
+    );
+    const ctx = buildContext(loadConfig({ ...CT, PRIMARY_SOURCE: "confirmtkt" }), { timetables: [sampleProvider()] });
+    const res = await ctx.registry.first("trains_between", (p) => p.trainsBetween({ from: "AAA", to: "BBB", date: "2026-01-05" }));
+    expect(res.source.provider).toBe("test-official");
+    expect(res.source.notes?.join(" ")).toMatch(/Fell back from confirmtkt: .*in the past/);
+    expect(res.data.map((l) => l.train_number)).toContain("11111");
+  });
+});
+
 describe("ConfirmTkt's seasonal gate is wired to the official timetable", () => {
   const MONSOON = { from: "06-10", to: "10-31" };
   const REST = { from: "11-01", to: "06-09" };
