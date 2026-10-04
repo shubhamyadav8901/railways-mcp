@@ -199,7 +199,32 @@ SHARED_NOTE_DIFF = re.compile(r"(?i)halt|stop|via|only|extend|terminat|terminal|
                               r"|cancel|divert|reschedul|change|day")
 
 
-def split_shared(raw: dict, own_days: dict):
+def split_table_cell(text: str, nums: list[str], own_tables: dict) -> dict:
+    """A From/To Table cell of a column headed by several numbers -> {number: cell text}.
+    A cell without "/" applies to every number. "63/22" over "11055/11059" names one table per
+    number, but TAG's order is not reliable (see split_shared), so each part is matched to a
+    number by the tables the number's own columns appear in (own_tables: number -> PDF numbers):
+    when exactly one one-to-one assignment fits, it is used; otherwise a number gets the one part
+    whose table carries it, or nothing ("") when no part or several parts do."""
+    parts = [p.strip() for p in text.split("/")]
+    if len(parts) == 1:
+        return {n: text for n in nums}
+
+    def fits(n, p):
+        return bool(_refs(p)) and _refs(p) <= own_tables.get(n, set())
+    if len(parts) == len(nums):
+        import itertools
+        perms = [pm for pm in itertools.permutations(parts) if all(fits(n, p) for n, p in zip(nums, pm))]
+        if len(perms) == 1:
+            return dict(zip(nums, perms[0]))
+    out = {}
+    for n in nums:
+        c = [p for p in parts if fits(n, p)]
+        out[n] = c[0] if len(c) == 1 else ""
+    return out
+
+
+def split_shared(raw: dict, own_days: dict, own_tables: dict | None = None):
     """A column headed by several numbers ("12888/12896") prints timings that TAG gives for each of
     them, with the running days of each number separated by "/" in the same order ("Su/Th").
     One column per number is returned only when nothing in the column is specific to one number:
@@ -211,7 +236,8 @@ def split_shared(raw: dict, own_days: dict):
     tables (own_days: number -> set of parsed day tuples) must print the same days. The split
     days are used only when all numbers but one are confirmed that way and none is contradicted
     (TAG prints "15630/15930" over "M / F" while 15930's own column says M); otherwise each
-    number's days are withheld (null) and only the times are used."""
+    number's days are withheld (null) and only the times are used.
+    From/To Table cells are split per number by split_table_cell."""
     shared = raw.get("shared")
     if not shared:
         return None, "number cell not readable"
@@ -244,10 +270,14 @@ def split_shared(raw: dict, own_days: dict):
         withheld = f"running days withheld: which group of the Days cell {raw['days_raw']!r} of {others} ({raw['pdf']} p{raw['page']}) belongs to which number is not confirmed by own TAG columns"
     else:
         withheld = None
+    nums = [x[0] for x in shared]
+    from_t = split_table_cell(raw["from_table"], nums, own_tables or {})
+    to_t = split_table_cell(raw["to_table"], nums, own_tables or {})
     out = []
     for k, (num, marks) in enumerate(shared):
         mk = [x for x in marks.split(",") if x]
         out.append({**raw, "bad": False, "number": num, "marker": ",".join(mk), "name": "", "shared": None,
+                    "from_table": from_t[num], "to_table": to_t[num],
                     "days_raw": "" if withheld else days[k], "days_withheld": withheld,
                     "arr_days_raw": "" if withheld or len(arr_days) != n else arr_days[k],
                     "footnotes": {x: raw["footnotes"][x] for x in mk},
@@ -922,11 +952,14 @@ def main():
     page_warnings = []
     sid = 0
     own_days = defaultdict(set)           # number -> running days printed in its own (unshared) columns
+    own_tables = defaultdict(set)         # number -> PDFs (tables) holding one of its own (unshared) columns
     for data in parsed.values():
         for raw in data["segments"]:
             d = None if raw["bad"] else parse_days(raw["days_raw"])[0]
             if d is not None:
                 own_days[raw["number"]].add(tuple(d))
+            if not raw["bad"]:
+                own_tables[raw["number"]].add(int(raw["pdf"].split(".")[0]))
 
     def add_column(raw):
         nonlocal sid
@@ -948,7 +981,7 @@ def main():
                 monsoon_unreadable.update(w.split("trains:")[1].split())
         for raw in data["segments"]:
             if raw["bad"]:
-                parts, why = split_shared(raw, own_days)
+                parts, why = split_shared(raw, own_days, own_tables)
                 if parts is None:
                     for n in re.findall(r"\d{5}", raw["number"]):
                         excluded.setdefault(n, f"shares a column with another train number ({raw['number']!r}, {pdf} p{raw['page']}): {why}")

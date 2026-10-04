@@ -172,6 +172,11 @@ single entry with no `valid`.
   footnotes silent on halts/route) and the Days cell splits into one group per number. The split days are used only
   when a number's own column elsewhere confirms them; TAG once prints them in the opposite order ("15630/15930" over
   "M / F"), so unconfirmed days are null. The name is left empty unless another table names the train.
+  A From/To Table cell with one part per number ("63/22" over 11055/11059) is split the same way, but its
+  order is never taken on trust. Each part goes to a number whose own columns appear in that table. If exactly
+  one one-to-one assignment fits, it is used. Otherwise a number gets the one part that fits it, or no
+  linkage at all (e.g. "66A/74A" over 15630/15930 gives 15930 66A and 15630 nothing). A cell without "/"
+  applies to every number.
 * Excluded trains (see `excluded_trains.csv`, 197 in total): 18 share a column with another number (e.g. `12330/12380`);
   114 have route pieces whose order can't be determined (no shared station, no unique placement from TAG's linkage, or two stations with the same time);
   61 have inconsistent tables (times going backwards or jumping, or tables disagreeing on the route); 4 have fewer than 2 usable stops.

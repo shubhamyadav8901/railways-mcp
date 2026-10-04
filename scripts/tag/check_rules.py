@@ -46,7 +46,24 @@ def check_km_via_heading():
     assert names(parse_pdf._drop_km_via_heading(row)) == "Delhi"
 
 
-CHECKS = [check_km_via_heading]
+def check_split_table_cell():
+    import build
+    split = build.split_table_cell
+    # one table for both numbers: applies to each
+    assert split("via 25", ["14007", "14017"], {}) == {"14007": "via 25", "14017": "via 25"}
+    # 6.pdf "63/22" over 11055/11059: 11055 runs only in table 63, so the printed order is the one fit
+    own = {"11055": {6, 63}, "11059": {6, 22, 63}}
+    assert split("63/22", ["11055", "11059"], own) == {"11055": "63", "11059": "22"}
+    # 29.pdf "66A/74A" over 15630/15930: TAG's order is reversed here (15930 runs in 66, 15630 nowhere
+    # else): no assignment fits both, so 15930 gets the one part that fits it and 15630 nothing
+    own = {"15630": {29}, "15930": {29, 66}}
+    assert split("66A/74A", ["15630", "15930"], own) == {"15630": "", "15930": "66A"}
+    # both numbers run in both tables: the order cannot be confirmed -> nothing for either
+    own = {"1": {63, 22}, "2": {63, 22}}
+    assert split("63/22", ["1", "2"], own) == {"1": "", "2": ""}
+
+
+CHECKS = [check_km_via_heading, check_split_table_cell]
 
 if __name__ == "__main__":
     for c in CHECKS:

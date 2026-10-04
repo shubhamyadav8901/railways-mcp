@@ -9,6 +9,7 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ### Fixed
 - **Timetable parser:** a "Km. via …" km-column heading whose place has two or more words (e.g. "New Jalpaiguri") is now removed whole, not only its first word. TAG 2026 prints only "Km.via Barauni", so the 2026 data is unchanged. `scripts/tag/check_rules.py` adds checks for single parser rules.
+- **Shared columns ("N1/N2"):** a From/To Table cell such as "63/22" is split per train number. Each part goes to the number whose own columns appear in that table, never just by printed order. Previously every number got the whole cell. Published trains are unchanged.
 
 ## [0.2.0] - 2026-10-04
 
