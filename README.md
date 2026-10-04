@@ -80,6 +80,16 @@ docker compose up -d --build        # http://localhost:3000/mcp
 curl -s localhost:3000/healthz      # {"status":"ok",...}
 ```
 
+Or run the prebuilt image (amd64 and arm64, published for each release) without cloning:
+
+```bash
+docker run -d --name indian-railways-mcp --restart unless-stopped \
+  -p 127.0.0.1:3000:3000 -e ALLOWED_HOSTS=localhost,127.0.0.1 \
+  ghcr.io/shubhamyadav8901/railways-mcp:latest
+```
+
+Add `--env-file .env` to pass optional settings.
+
 The timetable datasets (`data/*.json.gz`) are included in the repository and the image; rebuilding them is optional (see "Building the datasets"). Optional settings go in `.env`, using `.env.example` as the template: unofficial sources and their client settings, geocoder and verification budget. Run `docker compose up -d` after changing them. The port is bound to `127.0.0.1` only.
 
 Connect Claude Code:

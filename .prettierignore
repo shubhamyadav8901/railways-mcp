@@ -7,3 +7,4 @@ docs
 *.md
 scripts/tag/*.py
 scripts/tag/*.csv
+.claude/worktrees

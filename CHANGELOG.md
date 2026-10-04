@@ -4,6 +4,9 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Added
+- **Prebuilt Docker image** on GitHub Container Registry (`ghcr.io/shubhamyadav8901/railways-mcp`, amd64 and arm64), published for each release by a new workflow. The README shows how to run it without cloning.
+
 ## [0.2.0] - 2026-10-04
 
 ### Fixed

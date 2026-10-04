@@ -1,0 +1,68 @@
+name: Publish image
+
+# Publishes the Docker image to GitHub Container Registry for each release.
+# Run it manually with a tag to (re)publish an existing release.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish (e.g. v0.2.0)
+        required: true
+      latest:
+        description: Also move the `latest` tag to this version
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# One publish at a time, so `latest` is written in order.
+concurrency:
+  group: publish-image
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build and push image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - name: Check the tag is a release version
+        run: '[[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "not a release tag: $TAG"; exit 1; }'
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ env.TAG }}
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v6
+        with:
+          # labels (revision, source) from the checked-out tag, not the dispatching branch
+          context: git
+          images: ghcr.io/${{ github.repository }}
+          flavor: latest=false
+          tags: |
+            type=semver,pattern={{version}},value=${{ env.TAG }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ env.TAG }}
+            type=raw,value=latest,enable=${{ (github.event_name == 'release' && !github.event.release.prerelease) || inputs.latest == true }}
+          labels: |
+            org.opencontainers.image.title=Indian Railways MCP server
+            org.opencontainers.image.licenses=Apache-2.0
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
