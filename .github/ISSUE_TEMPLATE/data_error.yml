@@ -1,0 +1,30 @@
+name: Data error
+description: A train time, route, running day, station or other fact is wrong
+labels: [data]
+body:
+  - type: input
+    id: train
+    attributes:
+      label: Train number and/or station code
+      placeholder: "12951, KOTA"
+    validations:
+      required: true
+  - type: input
+    id: date
+    attributes:
+      label: Travel date the question was about
+      placeholder: "2026-10-14"
+  - type: textarea
+    id: returned
+    attributes:
+      label: What the server returned
+      description: Paste the relevant part of the tool output, including `source` and `verification`.
+    validations:
+      required: true
+  - type: textarea
+    id: correct
+    attributes:
+      label: What is correct, and where you saw it
+      description: Name an official reference (NTES, IRCTC, station display). Describe it or link to it; please don't paste copyrighted pages.
+    validations:
+      required: true

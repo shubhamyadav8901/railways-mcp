@@ -1,0 +1,9 @@
+{
+  "data": {
+    "stationList": [
+      { "stationCode": "NDLS", "stationName": "Delhi - All stations", "state": "Delhi", "latitude": "28.6419", "longitude": "77.2195" },
+      { "stationCode": "NDLS", "stationName": "New Delhi", "state": "Delhi", "latitude": "28.6419", "longitude": "77.2195" },
+      { "stationCode": "NDL", "stationName": "Nandyal", "state": "Andhra Pradesh", "latitude": "15.4772", "longitude": "78.4836" }
+    ]
+  }
+}

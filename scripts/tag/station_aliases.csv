@@ -1,0 +1,144 @@
+# Hand-curated TAG-name -> station-code map. Matching key = lower-case name with punctuation removed.
+# code = current code; datameet_code = the same physical station's (older) code in data/datameet2016.json.gz,
+# used only for state/zone/lat/lon when the current code is not in that 2016 list.
+# Only stations whose identity is certain are listed; ambiguous names (e.g. "Dadar" = DR or DDR) are left unmapped.
+tag_name,code,datameet_code,note
+Pt. Deen Dayal Upadhyaya Jn.,DDU,MGS,renamed from Mughalsarai Jn
+Pt. Deen Dayal Upadhyaya,DDU,MGS,renamed from Mughalsarai Jn
+Mughalsarai,DDU,MGS,old name
+Prayagraj,PRYJ,ALD,renamed from Allahabad Jn
+Prayagraj Jn.,PRYJ,ALD,renamed from Allahabad Jn
+Allahabad,PRYJ,ALD,old name
+Prayagraj Chheoki,PCOI,COI,renamed from Chheoki
+Prayagraj Cheoki,PCOI,COI,TAG spelling variant
+Rani Kamalapati,RKMP,HBJ,renamed from Habibganj
+Rani Kamlapati,RKMP,HBJ,TAG spelling variant
+Habibganj,RKMP,HBJ,old name
+Virangana Lakshmibai Jhansi,VGLJ,JHS,renamed from Jhansi Jn
+Virangana Laxmibai Jhansi,VGLJ,JHS,TAG spelling variant
+Narmadapuram,NDPM,HBD,renamed from Hoshangabad
+Chhatrapati Sambhaji Nagar,CPSN,AWB,renamed from Aurangabad
+Kalaburagi,KLBG,GR,renamed from Gulbarga
+Ayodhya Cantt.,AYC,FD,renamed from Faizabad Jn
+Ayodhya Cantt,AYC,FD,renamed from Faizabad Jn
+Thiruvananthapuram North,TVCN,KCVL,renamed from Kochuveli
+Thiruvanthapuram North,TVCN,KCVL,TAG spelling variant
+Sant Hirdaram Nagar,SHRN,BIH,renamed from Bairagarh
+Martyr Captain Tushar Mahajan,MCTM,UHP,renamed from Udhampur
+Banaras,BSBS,MUV,renamed from Manduadih
+Mumbai CSMT,CSMT,CSTM,Chhatrapati Shivaji Maharaj Terminus
+Sir M Vishvesvaraya Terminal,SMVB,,Bengaluru SMVT (opened after 2016)
+SMVT Bengaluru,SMVB,,Bengaluru SMVT (opened after 2016)
+Sir M Vishvesvaraya Terminal Bengaluru,SMVB,,Bengaluru SMVT (TAG spelling variant)
+Sir M Vishvesvaraya Terminal Bengluru,SMVB,,Bengaluru SMVT (TAG spelling variant)
+Sir M Vishweshwaraiah T. Bengaluru,SMVB,,Bengaluru SMVT (TAG spelling variant)
+Delhi,DLI,,Delhi Jn (Old Delhi)
+Nizamuddin,NZM,,Hazrat Nizamuddin
+H.Nizamuddin,NZM,,Hazrat Nizamuddin
+H. Nizamuddin,NZM,,Hazrat Nizamuddin
+Hazrat Nizamuddin,NZM,,Hazrat Nizamuddin
+MGR Chennai Central,MAS,,Puratchi Thalaivar Dr. M.G. Ramachandran Central
+Kanpur,CNB,,Kanpur Central
+Lucknow,LKO,,Lucknow Charbagh (NR); "Lucknow Jn." is LJN
+Lucknow Jn.,LJN,,Lucknow Jn (NER)
+Ahmedabad,ADI,,datameet lists a duplicate ADIJ
+Ratlam,RTM,,datameet lists a duplicate RTLM
+Khandwa,KNW,,datameet lists a duplicate KNWF
+Ujjain,UJN,,datameet lists a duplicate UJJN
+Ujain,UJN,,TAG spelling variant
+Gonda,GD,,datameet lists a duplicate GNAN
+Chhapra,CPR,,datameet lists a duplicate CAPA
+Bareilly,BE,,Bareilly Jn (NR); datameet also has BRY
+Mahesana,MSH,,datameet lists a duplicate MSHF
+New Jalpaiguri,NJP,,datameet lists a duplicate NJPS
+Narkatiaganj,NKE,,datameet lists a duplicate NRKG
+Bapudham Motihari,BMKI,,datameet lists a duplicate MKI
+Katwa,KWAE,,datameet lists a duplicate KWF
+Lumding,LMG,,datameet lists a duplicate LMGF
+Dhuri,DUI,,datameet DUE is a different (Bihar) location
+Botad,BTD,,datameet lists a duplicate BTDF
+Visakhapatnam,VSKP,,
+Rajahmundry,RJY,,
+Vizianagaram,VZM,,
+Mangaluru Jn.,MAJN,,
+Mangaluru Central,MAQ,,
+Tiruchchirappalli Jn.,TPJ,,
+Tiruchchirappalli,TPJ,,
+KSR Bengaluru,SBC,,
+Tirupati,TPTY,,
+Bandra (T),BDTS,,
+Bhadrak,BHC,,
+Hazur Sahib Nanded,NED,,
+Thiruvananthapuram Central,TVC,,
+Indore,INDB,,
+SSS Hubballi,UBL,,
+Mysuru,MYS,,
+Tumakuru,TK,,
+Surendra Nagar,SUNR,,
+Alappuzha,ALLP,,
+Mokama,MKA,,
+Lonavla,LNL,,
+Deoriasadar,DEOS,,
+Gandhidham,GIMB,,
+Bolpur,BHP,,Bolpur Shantiniketan
+Ramagundam,RDM,,
+Vriddhachalam Jn.,VRI,,
+Kolam Jn.,QLN,,Kollam Jn (TAG spelling)
+Kollam Jn.,QLN,,
+Shalimar,SHM,,
+Kurnool City,KRNT,,
+Belagavi,BGM,,
+New Alipurduar,NOQ,,
+Rampurhat,RPH,,
+Sagour,SGO,,Sagar (Saugor)
+Dharwad,DWR,,
+Sealdah,SDAH,,
+Maa Belha Devi Dham Pratapgarh,PBH,,Pratapgarh Jn
+Nelore,NLR,,Nellore (TAG spelling)
+Kurduwadi,KWV,,
+Betiah,BTH,,
+Shri Mata Vaishno Devi Katra,SVDK,,
+Samakhiyali,SIOB,,
+Hyderabad,HYB,,
+Piparia,PPI,,
+Bathinda,BTI,,
+Hingoli,HNL,,
+Midnapur,MDN,,
+NSCB Gomoh,GMO,,Netaji S.C. Bose Gomoh
+Rajnandgaon,RJN,,
+Ringus,RGS,,
+Mandsor,MDS,,
+Davanagere,DVG,,
+Suratkal,SL,,
+Sai Nagar Shirdi,SNSI,,
+Sainagar Shirdi,SNSI,,
+Vijayapura,BJP,,
+Bengaluru Cantt.,BNC,,
+Miryalguda,MRGA,,
+Uslapur,USL,,
+Samdari,SMR,,
+Mumbai Central,MMCT,BCT,code changed from BCT
+Bareily,BE,,TAG spelling of Bareilly
+Firozpur,FZR,,Firozpur Cantt
+Sri Ganga Nagar,SGNR,,Shri Ganganagar
+Sri Ganganagar,SGNR,,Shri Ganganagar
+Hissar,HSR,,
+Kanniyakumari,CAPE,,Kanyakumari
+Cuddappah,HX,,Kadapa
+Mangalore Central,MAQ,,
+Netaji Subhash Chandra Bose Gomoh,GMO,,
+Lucknow (NR),LKO,,Lucknow Charbagh (NR)
+Ahilyanagar,ANG,,renamed from Ahmednagar
+Ahmednagar,ANG,,
+Kopergaon,KPG,,
+New Coochbehar,NCB,,
+New Cooch Behar,NCB,,
+Varkala Sivagiri,VAK,,
+Pathan Kot Cantt,PTKC,,
+Shivamogga Town,SMET,,
+Tiruppadirippuliyur,TDPR,,
+Gomtinagar,GTNR,,
+Bhatkal,BTJL,,datameet also lists BTKL
+Aishbagh,ASH,,datameet lists a duplicate ASSH
+Shri Mahaveerji,SMVJ,,Shri Mahavirji (not in datameet 2016)
+Kolkata,KOAA,,Kolkata (Chitpur) terminal; datameet also lists an obsolete CP

@@ -1,0 +1,11 @@
+{
+  "data": {
+    "stationList": [
+      { "stationCode": "LTT", "stationName": "Mumbai - All stations", "state": "Maharashtra", "latitude": "19.0702", "longitude": "72.8899" },
+      { "stationCode": "CSMT", "stationName": "Mumbai CSMT", "state": "Maharashtra", "latitude": "18.9411", "longitude": "72.8352" },
+      { "stationCode": "LTT", "stationName": "Lokmanyatilak T", "state": "Maharashtra", "latitude": "19.0688", "longitude": "72.8907" },
+      { "stationCode": "BDTS", "stationName": "Bandra Terminus", "state": "Maharashtra", "latitude": "19.0627", "longitude": "72.8414" },
+      { "stationCode": "DR", "stationName": "Dadar", "state": "Maharashtra", "latitude": "0", "longitude": "0" }
+    ]
+  }
+}

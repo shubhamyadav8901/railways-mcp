@@ -1,0 +1,343 @@
+{
+ "meta": {
+  "built_at": "2026-10-04T13:04:39Z",
+  "method": "candidates: TAG-vs-eRail route alignment (same position, identical times), datameet near-duplicates, and retired datameet codes (near a TAG station, terminal name search, or datameet-2016 vs eRail same-train position). Accepted only with two independent pieces of evidence among: datameet-vs-ConfirmTkt coordinates within 1 km, exact normalised names, route position. Rejected: > 5 km apart; both codes live on ConfirmTkt unless a retired pair has datameet-vs-eRail route evidence and either identical ConfirmTkt names or >= 2 train pairs.",
+  "sources": [
+   "data/datameet2016.json.gz",
+   "data/tag2026.json.gz (TAG 2026)",
+   "eRail train routes (cached)",
+   "ConfirmTkt station autosuggest (cached)"
+  ]
+ },
+ "groups": [
+  {
+   "codes": [
+    "ALD",
+    "PRYJ"
+   ],
+   "current": "PRYJ",
+   "names": [
+    "ALLAHABAD JN",
+    "Prayagraj"
+   ],
+   "evidence": [
+    "ALD~PRYJ: coord: datameet ALD 25.4462,81.8288 vs ConfirmTkt PRYJ 25.4458,81.8289 (53 m)",
+    "ALD~PRYJ: route: datameet 2016 lists ALD and eRail lists PRYJ at the same position (terminal or single-stop slot) of train(s) 11107",
+    "ALD~PRYJ: ALD not listed by ConfirmTkt",
+    "ALD~PRYJ: proposed by: within 1 km of TAG station"
+   ]
+  },
+  {
+   "codes": [
+    "AWB",
+    "CPSN"
+   ],
+   "current": "CPSN",
+   "names": [
+    "AURANGABAD",
+    "Chhatrapati Sambhaji Nagar"
+   ],
+   "evidence": [
+    "AWB~CPSN: coord: datameet AWB 19.8593,75.3106 vs ConfirmTkt CPSN 19.8595,75.3109 (36 m)",
+    "AWB~CPSN: route: datameet 2016 lists AWB and eRail lists CPSN at the same position (terminal or single-stop slot) of train(s) 17687",
+    "AWB~CPSN: AWB not listed by ConfirmTkt",
+    "AWB~CPSN: proposed by: within 1 km of TAG station"
+   ]
+  },
+  {
+   "codes": [
+    "BCT",
+    "MMCT"
+   ],
+   "current": "MMCT",
+   "names": [
+    "Mumbai Central"
+   ],
+   "evidence": [
+    "BCT~MMCT: coord: datameet BCT 18.9707,72.8194 vs ConfirmTkt MMCT 18.9707,72.8192 (19 m)",
+    "BCT~MMCT: name: datameet 'Mumbai Central' vs ConfirmTkt 'Mumbai Central'",
+    "BCT~MMCT: route: datameet 2016 lists BCT and eRail lists MMCT at the same position (terminal or single-stop slot) of train(s) 12009, 12228, 12239, 12951, 12952, 12953",
+    "BCT~MMCT: BCT still listed by ConfirmTkt as 'Mumbai Central' (legacy entry)",
+    "BCT~MMCT: proposed by: within 1 km of TAG station"
+   ]
+  },
+  {
+   "codes": [
+    "BNRS",
+    "MUV"
+   ],
+   "current": "BNRS",
+   "names": [
+    "Banaras",
+    "MANDUADIH"
+   ],
+   "evidence": [
+    "MUV~BNRS: coord: datameet MUV 25.3000,82.9721 vs ConfirmTkt BNRS 25.2993,82.9718 (88 m)",
+    "MUV~BNRS: route: datameet 2016 lists MUV and eRail lists BNRS at the same position (terminal or single-stop slot) of train(s) 15004, 15104",
+    "MUV~BNRS: MUV still listed by ConfirmTkt as 'Manduadih' (legacy entry)",
+    "MUV~BNRS: proposed by: datameet-vs-eRail route of the same train"
+   ]
+  },
+  {
+   "codes": [
+    "BTC",
+    "BTCN"
+   ],
+   "current": "BTC",
+   "names": [
+    "Balaghat",
+    "Balaghat Jn",
+    "Balaghat Junction"
+   ],
+   "evidence": [
+    "BTC~BTCN: route: same position and identical times in TAG vs eRail for train(s) 11702, 22174",
+    "BTC~BTCN: coord: datameet BTCN 21.8112,80.1994 vs ConfirmTkt BTC 21.8116,80.1998 (62 m); BTCN not listed by ConfirmTkt",
+    "BTC~BTCN: dm-coord: datameet lists BTC 'Balaghat Junction' and BTCN 'Balaghat' within 1 km"
+   ]
+  },
+  {
+   "codes": [
+    "CSMT",
+    "CSTM"
+   ],
+   "current": "CSMT",
+   "names": [
+    "MUMBAI CST",
+    "Mumbai CSMT"
+   ],
+   "evidence": [
+    "CSTM~CSMT: coord: datameet CSTM 18.9445,72.8369 vs ConfirmTkt CSMT 18.9422,72.8363 (264 m)",
+    "CSTM~CSMT: route: datameet 2016 lists CSTM and eRail lists CSMT at the same position (terminal or single-stop slot) of train(s) 11007, 12123, 12124, 12133, 12138, 12139, 12187, 12262, 12321, 12322, 12859, 12860, 12870, 17618",
+    "CSTM~CSMT: CSTM still listed by ConfirmTkt as 'C Shivaji Mah T' (legacy entry)",
+    "CSTM~CSMT: proposed by: within 1 km of TAG station"
+   ]
+  },
+  {
+   "codes": [
+    "DAL",
+    "DALF"
+   ],
+   "current": "DAL",
+   "names": [
+    "DALI GANJ",
+    "DALIGANJ",
+    "Daliganj"
+   ],
+   "evidence": [
+    "DAL~DALF: coord: datameet DALF 26.8756,80.9277 vs ConfirmTkt DAL 26.8755,80.9275 (24 m); DALF not listed by ConfirmTkt",
+    "DAL~DALF: dm-coord: datameet lists DAL 'DALIGANJ' and DALF 'DALI GANJ' within 1 km"
+   ]
+  },
+  {
+   "codes": [
+    "DAS",
+    "DASF"
+   ],
+   "current": "DAS",
+   "names": [
+    "DHASA JN",
+    "Dhasa Jn"
+   ],
+   "evidence": [
+    "DAS~DASF: coord: datameet DASF 21.7825,71.5180 vs ConfirmTkt DAS 21.7826,71.5181 (18 m); DASF not listed by ConfirmTkt",
+    "DAS~DASF: dm-coord: datameet lists DAS 'DHASA JN' and DASF 'Dhasa Jn' within 1 km"
+   ]
+  },
+  {
+   "codes": [
+    "HBJ",
+    "RKMP"
+   ],
+   "current": "RKMP",
+   "names": [
+    "HABIBGANJ",
+    "Rani Kamalapati"
+   ],
+   "evidence": [
+    "HBJ~RKMP: coord: datameet HBJ 23.2220,77.4394 vs ConfirmTkt RKMP 23.2219,77.4399 (48 m)",
+    "HBJ~RKMP: route: datameet 2016 lists HBJ and eRail lists RKMP at the same position (terminal or single-stop slot) of train(s) 12153, 12154, 12156",
+    "HBJ~RKMP: HBJ not listed by ConfirmTkt",
+    "HBJ~RKMP: proposed by: within 1 km of TAG station"
+   ]
+  },
+  {
+   "codes": [
+    "HN",
+    "HNEO"
+   ],
+   "current": "HN",
+   "names": [
+    "HATHBANDH",
+    "Hathbandh"
+   ],
+   "evidence": [
+    "HN~HNEO: coord: datameet HNEO 21.6319,81.8458 vs ConfirmTkt HN 21.6319,81.8461 (31 m); HNEO not listed by ConfirmTkt",
+    "HN~HNEO: dm-coord: datameet lists HN 'HATHBANDH' and HNEO 'Hathbandh' within 1 km"
+   ]
+  },
+  {
+   "codes": [
+    "KCVL",
+    "TVCN"
+   ],
+   "current": "TVCN",
+   "names": [
+    "KOCHUVELI",
+    "Thiruvanthapuram North"
+   ],
+   "evidence": [
+    "KCVL~TVCN: coord: datameet KCVL 8.5093,76.8961 vs ConfirmTkt TVCN 8.5097,76.8967 (82 m)",
+    "KCVL~TVCN: route: datameet 2016 lists KCVL and eRail lists TVCN at the same position (terminal or single-stop slot) of train(s) 12201, 12257, 16316, 19259, 19260",
+    "KCVL~TVCN: KCVL not listed by ConfirmTkt",
+    "KCVL~TVCN: proposed by: within 1 km of TAG station"
+   ]
+  },
+  {
+   "codes": [
+    "KOX",
+    "KQX"
+   ],
+   "current": "KOX",
+   "names": [
+    "KACHUJOR",
+    "Kachujor"
+   ],
+   "evidence": [
+    "KOX~KQX: coord: datameet KQX 23.8412,87.4628 vs ConfirmTkt KOX 23.8416,87.4634 (71 m); KQX not listed by ConfirmTkt",
+    "KOX~KQX: dm-coord: datameet lists KOX 'KACHUJOR' and KQX 'KACHUJOR' within 1 km"
+   ]
+  },
+  {
+   "codes": [
+    "LC",
+    "LCNC"
+   ],
+   "current": "LC",
+   "names": [
+    "LUCKNOW CITY",
+    "Lucknow City"
+   ],
+   "evidence": [
+    "LC~LCNC: coord: datameet LCNC 26.8593,80.9180 vs ConfirmTkt LC 26.8592,80.9179 (6 m); LCNC not listed by ConfirmTkt",
+    "LC~LCNC: dm-coord: datameet lists LC 'LUCKNOW CITY' and LCNC 'LUCKNOW CITY' within 1 km"
+   ]
+  },
+  {
+   "codes": [
+    "MBLP",
+    "NHH"
+   ],
+   "current": "MBLP",
+   "names": [
+    "Maharaja Bijli Pasi Nihalgarh",
+    "NIHALGARH",
+    "Nihalgarh"
+   ],
+   "evidence": [
+    "MBLP~NHH: route: same position and identical times in TAG vs eRail for train(s) 12143",
+    "MBLP~NHH: coord: datameet NHH 26.4601,81.6326 vs ConfirmTkt MBLP 26.4605,81.6331 (66 m); NHH not listed by ConfirmTkt"
+   ]
+  },
+  {
+   "codes": [
+    "MSH",
+    "MSHF",
+    "MSHM"
+   ],
+   "current": "MSH",
+   "names": [
+    "MAHESANA",
+    "MAHESANA JN",
+    "Mahesana",
+    "Mahesana Jn"
+   ],
+   "evidence": [
+    "MSH~MSHF: coord: datameet MSHF 23.6033,72.3894 vs ConfirmTkt MSH 23.6006,72.3889 (302 m); MSHF not listed by ConfirmTkt",
+    "MSH~MSHF: dm-coord: datameet lists MSH 'MAHESANA JN' and MSHF 'Mahesana' within 1 km",
+    "MSH~MSHM: coord: datameet MSHM 23.6061,72.3888 vs ConfirmTkt MSH 23.6006,72.3889 (613 m); MSHM not listed by ConfirmTkt",
+    "MSH~MSHM: dm-coord: datameet lists MSH 'MAHESANA JN' and MSHM 'MAHESANA' within 1 km",
+    "MSHF~MSH: coord: datameet MSHF 23.6033,72.3894 vs ConfirmTkt MSH 23.6006,72.3889 (302 m)",
+    "MSHF~MSH: name: datameet 'Mahesana' vs ConfirmTkt 'Mahesana Jn'",
+    "MSHF~MSH: MSHF not listed by ConfirmTkt",
+    "MSHF~MSH: proposed by: within 1 km of TAG station",
+    "MSHM~MSH: coord: datameet MSHM 23.6061,72.3888 vs ConfirmTkt MSH 23.6006,72.3889 (613 m)",
+    "MSHM~MSH: name: datameet 'MAHESANA' vs ConfirmTkt 'Mahesana Jn'",
+    "MSHM~MSH: MSHM not listed by ConfirmTkt",
+    "MSHM~MSH: proposed by: within 1 km of TAG station"
+   ]
+  },
+  {
+   "codes": [
+    "NJP",
+    "NJPS"
+   ],
+   "current": "NJP",
+   "names": [
+    "NEW JALPAIGURI",
+    "New Jalpaiguri"
+   ],
+   "evidence": [
+    "NJP~NJPS: coord: datameet NJPS 26.6824,88.4427 vs ConfirmTkt NJP 26.6827,88.4434 (77 m); NJPS not listed by ConfirmTkt",
+    "NJP~NJPS: dm-coord: datameet lists NJP 'NEW JALPAIGURI' and NJPS 'New Jalpaiguri' within 1 km",
+    "NJPS~NJP: coord: datameet NJPS 26.6824,88.4427 vs ConfirmTkt NJP 26.6827,88.4434 (77 m)",
+    "NJPS~NJP: name: datameet 'New Jalpaiguri' vs ConfirmTkt 'New Jalpaiguri'",
+    "NJPS~NJP: NJPS not listed by ConfirmTkt",
+    "NJPS~NJP: proposed by: within 1 km of TAG station"
+   ]
+  },
+  {
+   "codes": [
+    "SGUD",
+    "SGUJ"
+   ],
+   "current": "SGUJ",
+   "names": [
+    "SGUJ",
+    "SILIGURI JN",
+    "Siliguri",
+    "Siliguri Jn"
+   ],
+   "evidence": [
+    "SGUD~SGUJ: route: same position and identical times in TAG vs eRail for train(s) 15701, 15702",
+    "SGUD~SGUJ: coord: datameet SGUD 26.7236,88.4140 vs ConfirmTkt SGUJ 26.7236,88.4136 (46 m); SGUD not listed by ConfirmTkt",
+    "SGUD~SGUJ: dm-coord: datameet lists SGUD 'Siliguri' and SGUJ 'SILIGURI JN' within 1 km"
+   ]
+  },
+  {
+   "codes": [
+    "UJJN",
+    "UJN"
+   ],
+   "current": "UJN",
+   "names": [
+    "UJJAIN JN",
+    "Ujjain",
+    "Ujjain Jn"
+   ],
+   "evidence": [
+    "UJJN~UJN: coord: datameet UJJN 23.1782,75.7814 vs ConfirmTkt UJN 23.1784,75.7779 (364 m); UJJN not listed by ConfirmTkt",
+    "UJJN~UJN: dm-coord: datameet lists UJJN 'Ujjain Jn' and UJN 'UJJAIN JN' within 1 km",
+    "UJJN~UJN: coord: datameet UJJN 23.1782,75.7814 vs ConfirmTkt UJN 23.1784,75.7779 (364 m)",
+    "UJJN~UJN: name: datameet 'Ujjain Jn' vs ConfirmTkt 'Ujjain Jn'",
+    "UJJN~UJN: UJJN not listed by ConfirmTkt",
+    "UJJN~UJN: proposed by: within 1 km of TAG station"
+   ]
+  },
+  {
+   "codes": [
+    "VLKN",
+    "VLNK"
+   ],
+   "current": "VLNK",
+   "names": [
+    "VELANKANNI",
+    "Velankanni",
+    "Vellankanni"
+   ],
+   "evidence": [
+    "VLKN~VLNK: coord: datameet VLKN 10.6869,79.8462 vs ConfirmTkt VLNK 10.6868,79.8464 (28 m); VLKN not listed by ConfirmTkt",
+    "VLKN~VLNK: dm-coord: datameet lists VLKN 'Velankanni' and VLNK 'VELANKANNI' within 1 km"
+   ]
+  }
+ ]
+}

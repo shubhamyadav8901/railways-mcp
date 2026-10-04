@@ -1,0 +1,9 @@
+node_modules
+dist
+data
+package-lock.json
+test/fixtures
+docs
+*.md
+scripts/tag/*.py
+scripts/tag/*.csv

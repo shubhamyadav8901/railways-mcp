@@ -1,0 +1,26 @@
+name: Bug report
+description: Something in the server doesn't work as documented
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Include the tool name, the arguments, and the response (or error code and message).
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: Steps, configuration (ENABLE_UNOFFICIAL_SOURCES and so on; never paste client keys), and how you run it (Docker or npm).
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit

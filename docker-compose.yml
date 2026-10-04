@@ -1,0 +1,17 @@
+services:
+  railways-mcp:
+    build: .
+    image: indian-railways-mcp:local
+    container_name: indian-railways-mcp
+    restart: unless-stopped
+    # Bound to loopback only: reachable from this machine, not the LAN.
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PORT: "3000"
+      HOST: "0.0.0.0"
+      # Host-header validation (DNS-rebinding protection) for local access.
+      ALLOWED_HOSTS: "${ALLOWED_HOSTS:-localhost,127.0.0.1}"

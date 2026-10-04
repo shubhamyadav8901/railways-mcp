@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "data": {
+    "trainNumber": "12951",
+    "summary": { "punctualityPercentage": 41.5 },
+    "route": [
+      { "sequence": 1, "stationCode": "MMCT", "stationName": "Mumbai Central", "arrivalDelayMinutes": 0, "departureDelayMinutes": -4, "scheduledDeparture": "16:45" },
+      { "sequence": 2, "stationCode": "BVI", "stationName": "Borivali", "arrivalDelayMinutes": 6, "departureDelayMinutes": 8, "scheduledArrival": "17:10", "scheduledDeparture": "17:12" },
+      { "sequence": 3, "stationCode": "ST", "stationName": "Surat", "arrivalDelayMinutes": 12, "departureDelayMinutes": 13, "scheduledArrival": "19:35", "scheduledDeparture": "19:40" },
+      { "sequence": 4, "stationCode": "BRC", "stationName": "Vadodara Jn", "arrivalDelayMinutes": 18, "departureDelayMinutes": 17, "scheduledArrival": "20:55", "scheduledDeparture": "21:05" },
+      { "sequence": 5, "stationCode": "RTM", "stationName": "Ratlam Jn", "arrivalDelayMinutes": 21, "departureDelayMinutes": 22, "scheduledArrival": "00:15", "scheduledDeparture": "00:18" },
+      { "sequence": 6, "stationCode": "NAD", "stationName": "Nagda Jn", "arrivalDelayMinutes": 19, "departureDelayMinutes": 20, "scheduledArrival": "00:58", "scheduledDeparture": "01:00" },
+      { "sequence": 7, "stationCode": "KOTA", "stationName": "Kota Jn", "arrivalDelayMinutes": 31, "departureDelayMinutes": 34, "scheduledArrival": "03:05", "scheduledDeparture": "03:10" },
+      { "sequence": 8, "stationCode": "NDLS", "stationName": "New Delhi", "arrivalDelayMinutes": 28, "departureDelayMinutes": 0, "scheduledArrival": "08:25" }
+    ]
+  }
+}

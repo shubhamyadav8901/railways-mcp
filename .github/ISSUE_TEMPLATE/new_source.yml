@@ -1,0 +1,29 @@
+name: New data source
+description: Propose adding a data provider
+labels: [enhancement, data-source]
+body:
+  - type: input
+    id: source
+    attributes:
+      label: Source (name and URL)
+    validations:
+      required: true
+  - type: textarea
+    id: provides
+    attributes:
+      label: What it provides
+      description: Capabilities (schedules, trains between, punctuality…), coverage and freshness.
+    validations:
+      required: true
+  - type: textarea
+    id: terms
+    attributes:
+      label: Terms of use and access
+      description: Is it official, a documented API, or unofficial? What do its terms say about automated access and storage? Does it need keys?
+    validations:
+      required: true
+  - type: textarea
+    id: plan
+    attributes:
+      label: Implementation notes
+      description: Endpoints and formats, rate limits, and how it would cross-check existing sources.

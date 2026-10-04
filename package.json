@@ -1,0 +1,53 @@
+{
+  "name": "indian-railways-mcp",
+  "version": "0.2.0",
+  "description": "MCP server giving AI assistants cross-checked Indian Railways timetables, journey planning, punctuality history, seats and fares",
+  "license": "Apache-2.0",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shubhamyadav8901/railways-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shubhamyadav8901/railways-mcp/issues"
+  },
+  "homepage": "https://github.com/shubhamyadav8901/railways-mcp#readme",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "indian-railways",
+    "railways",
+    "train",
+    "timetable",
+    "claude",
+    "llm"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/src/server.js",
+    "dev": "tsx watch src/server.ts",
+    "build:data": "tsx scripts/build-snapshot.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -p . --noEmit",
+    "smoke": "tsx scripts/smoke.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.0",
+    "express": "^5.2.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.4",
+    "prettier": "^3.9.9",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

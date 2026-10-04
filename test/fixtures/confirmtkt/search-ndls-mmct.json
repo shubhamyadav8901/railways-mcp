@@ -1,0 +1,43 @@
+{
+  "data": {
+    "errorCode": 0,
+    "errorMessage": null,
+    "trainList": [
+      {
+        "trainNumber": "12904", "trainName": "GOLDEN TEMPLE M",
+        "fromStnCode": "NZM", "fromStnName": "Delhi Hazrat Nizamuddin", "toStnCode": "BDTS", "toStnName": "Mumbai Bandra Terminus",
+        "departureTime": "05:10", "arrivalTime": "23:40", "duration": 1110, "distance": 1372,
+        "runningDays": "1111111", "trainType": "O", "avlClasses": ["SL", "3A"], "allowedQuotas": ["GN", "LD"],
+        "availabilityCache": {
+          "3A": { "travelClass": "3A", "quota": "GN", "date": "2026-10-18T00:00:00", "availability": "RLWL9/WL7", "fare": "1690", "cacheTime": "2026-10-01T10:12:30.001", "predictionPercentage": 74 }
+        }
+      },
+      {
+        "trainNumber": "12138", "trainName": "PUNJAB MAIL",
+        "fromStnCode": "NDLS", "fromStnName": "New Delhi", "toStnCode": "CSMT", "toStnName": "Mumbai Csmt",
+        "departureTime": "05:25", "arrivalTime": "07:50", "duration": 1585, "distance": 1540,
+        "runningDays": "1111111", "trainType": "O", "avlClasses": ["SL", "3A"], "allowedQuotas": ["GN", "LD"],
+        "availabilityCache": {
+          "SL": { "travelClass": "SL", "quota": "GN", "date": "2026-10-18T00:00:00", "availability": "RLWL30/WL22", "fare": "705", "cacheTime": "2026-10-01T09:41:07.001", "predictionPercentage": 58 }
+        }
+      },
+      {
+        "trainNumber": "12952", "trainName": "MMCT TEJAS RAJ",
+        "fromStnCode": "NDLS", "fromStnName": "New Delhi", "toStnCode": "MMCT", "toStnName": "Mumbai Central",
+        "departureTime": "16:30", "arrivalTime": "08:20", "duration": 950, "distance": 1386,
+        "runningDays": "1111111", "trainType": "R", "avlClasses": ["3A", "2A", "1A"], "allowedQuotas": ["GN", "SS", "LD"],
+        "availabilityCache": {
+          "1A": { "travelClass": "1A", "quota": "GN", "date": "2026-10-18T00:00:00", "availability": "GNWL6/WL4", "fare": "5410", "cacheTime": "2026-10-01T07:15:42.001", "predictionPercentage": 88 },
+          "2A": { "travelClass": "2A", "quota": "GN", "date": "2026-10-18T00:00:00", "availability": "RAC  12/RAC  9", "fare": "4280", "cacheTime": "2026-10-01T15:22:18.001", "predictionPercentage": 100 },
+          "3A": { "travelClass": "3A", "quota": "GN", "date": "2026-10-18T00:00:00", "availability": "RAC  31/RAC  24", "fare": "3095", "cacheTime": "2026-10-01T11:03:55.001", "predictionPercentage": 97 }
+        }
+      },
+      {
+        "trainNumber": "12954", "trainName": "AK TEJAS RAJ",
+        "fromStnCode": "NZM", "fromStnName": "Delhi Hazrat Nizamuddin", "toStnCode": "MMCT", "toStnName": "Mumbai Central",
+        "departureTime": "17:05", "arrivalTime": "09:50", "duration": 1005, "distance": 1379,
+        "runningDays": "1111111", "trainType": "R", "avlClasses": ["3A", "2A", "1A"], "allowedQuotas": ["GN", "SS", "LD"]
+      }
+    ]
+  }
+}

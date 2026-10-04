@@ -1,0 +1,61 @@
+{
+  "data": {
+    "errorCode": 0,
+    "errorMessage": null,
+    "trainList": [
+      {
+        "trainNumber": "12284", "trainName": "NZM ERS DURONTO",
+        "fromStnCode": "MAO", "fromStnName": "Madgaon Junction", "toStnCode": "ERS", "toStnName": "Ernakulam Junction",
+        "departureTime": "01:40", "arrivalTime": "18:05", "duration": 985, "distance": 847,
+        "runningDays": "1000000", "trainType": "R", "avlClasses": ["SL", "3A", "2A"], "allowedQuotas": ["GN", "LD"],
+        "availabilityCache": {
+          "SL": { "travelClass": "SL", "quota": "GN", "date": "2026-10-19T00:00:00", "availability": "AVAILABLE-0087", "fare": "955", "cacheTime": "2026-10-01T12:05:33.001", "predictionPercentage": 100 },
+          "3A": { "travelClass": "3A", "quota": "GN", "date": "2026-10-19T00:00:00", "availability": "AVAILABLE-0042", "fare": "2290", "cacheTime": "2026-10-01T12:06:10.001", "predictionPercentage": 100 }
+        }
+      },
+      {
+        "trainNumber": "22150", "trainName": "PUNE ERS SF EXP",
+        "fromStnCode": "MAO", "fromStnName": "Madgaon Junction", "toStnCode": "ERS", "toStnName": "Ernakulam Junction",
+        "departureTime": "06:40", "arrivalTime": "21:10", "duration": 870, "distance": 849,
+        "runningDays": "0100100", "trainType": "O", "avlClasses": ["SL", "3A", "2A"], "allowedQuotas": ["GN", "LD"],
+        "availabilityCache": {
+          "2A": { "travelClass": "2A", "quota": "GN", "date": "2026-10-19T00:00:00", "availability": "REGRET", "fare": "1720", "cacheTime": "2026-10-01T08:47:21.001", "predictionPercentage": 0 },
+          "3A": { "travelClass": "3A", "quota": "GN", "date": "2026-10-19T00:00:00", "availability": "RLWL21/WL14", "fare": "1235", "cacheTime": "2026-10-01T08:47:40.001", "predictionPercentage": 63 }
+        }
+      },
+      {
+        "trainNumber": "12432", "trainName": "NZM TVC RAJDHANI",
+        "fromStnCode": "MAO", "fromStnName": "Madgaon Junction", "toStnCode": "ERS", "toStnName": "Ernakulam Junction",
+        "departureTime": "08:50", "arrivalTime": "21:30", "duration": 760, "distance": 848,
+        "runningDays": "1011000", "trainType": "R", "avlClasses": ["3A", "2A", "1A"], "allowedQuotas": ["GN", "SS", "LD"],
+        "availabilityCache": {
+          "3A": { "travelClass": "3A", "quota": "GN", "date": "2026-10-19T00:00:00", "availability": "RLWL7/WL5", "fare": "2480", "cacheTime": "2026-10-01T10:31:02.001", "predictionPercentage": 82 }
+        }
+      },
+      {
+        "trainNumber": "12618", "trainName": "MANGLA EXP",
+        "fromStnCode": "MAO", "fromStnName": "Madgaon Junction", "toStnCode": "ERS", "toStnName": "Ernakulam Junction",
+        "departureTime": "17:40", "arrivalTime": "07:55", "duration": 855, "distance": 847,
+        "runningDays": "1111111", "trainType": "O", "avlClasses": ["SL", "3E", "3A"], "allowedQuotas": ["GN", "LD"]
+      },
+      {
+        "trainNumber": "12484", "trainName": "ASR TVCN SF EXP",
+        "fromStnCode": "MAO", "fromStnName": "Madgaon Junction", "toStnCode": "ERS", "toStnName": "Ernakulam Junction",
+        "departureTime": "18:20", "arrivalTime": "09:15", "duration": 895, "distance": 851,
+        "runningDays": "1000000", "trainType": "O", "avlClasses": ["SL", "3A"], "allowedQuotas": ["GN", "LD"]
+      },
+      {
+        "trainNumber": "16345", "trainName": "NETRAVATI EXP",
+        "fromStnCode": "MAO", "fromStnName": "Madgaon Junction", "toStnCode": "ERS", "toStnName": "Ernakulam Junction",
+        "departureTime": "23:45", "arrivalTime": "13:55", "duration": 850, "distance": 846,
+        "runningDays": "1111111", "trainType": "O", "avlClasses": ["SL", "3A"], "allowedQuotas": ["GN", "LD"]
+      },
+      {
+        "trainNumber": "16333", "trainName": "VRL TVC EXP",
+        "fromStnCode": "MAO", "fromStnName": "Madgaon Junction", "toStnCode": "ERN", "toStnName": "Ernakulam Town",
+        "departureTime": "10:35", "arrivalTime": "01:50", "duration": 915, "distance": 843,
+        "runningDays": "0000100", "trainType": "O", "avlClasses": ["SL", "3A"], "allowedQuotas": ["GN", "LD"]
+      }
+    ]
+  }
+}

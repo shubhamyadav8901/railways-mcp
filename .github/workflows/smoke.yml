@@ -1,0 +1,31 @@
+name: Smoke test external sources
+
+# Manual only: one live request per selected external source. Sources that
+# need client settings (confirmtkt, erail) are skipped unless the repository
+# provides them as secrets.
+on:
+  workflow_dispatch:
+    inputs:
+      sources:
+        description: "Space-separated sources (confirmtkt erail etrain ntes railradar nominatim)"
+        required: false
+        default: "nominatim"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run smoke -- ${{ inputs.sources }}
+        env:
+          CONFIRMTKT_CLIENT_ID: ${{ secrets.CONFIRMTKT_CLIENT_ID }}
+          CONFIRMTKT_API_KEY: ${{ secrets.CONFIRMTKT_API_KEY }}
+          ERAIL_ROUTE_KEY: ${{ secrets.ERAIL_ROUTE_KEY }}

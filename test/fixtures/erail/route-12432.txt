@@ -1,0 +1,1 @@
+NZM-TVC#^1~NZM~Hazrat Nizamuddin~First~06.30~0~0~1~^2~KOTA~Kota Jn~11.10~11.20~10~465~1~^3~RTM~Ratlam Jn~14.20~14.25~5~730~1~^4~BRC~Vadodara Jn~17.40~17.50~10~990~1~^5~PNVL~Panvel~23.05~23.10~5~1400~1~^6~MAO~Madgaon~08.40~08.50~10~2100~2~^7~ERS~Ernakulam Jn~21.30~21.35~5~2945~2~^8~QLN~Kollam Jn~00.10~00.12~2~3085~3~^9~TVC~Thiruvananthapuram Central~01.55~Last~0~3150~3~

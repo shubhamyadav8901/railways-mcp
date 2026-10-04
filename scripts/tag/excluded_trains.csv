@@ -1,0 +1,198 @@
+train,reason
+01666,Dharmanagar is reached before the train leaves Barauni (TAG tables disagree on the route)
+02198,monsoon variant: route split over TAG tables that share no station and cannot be ordered by TAG's table linkage; regular variant: route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+04717,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+05074,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+09419,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+09525,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+09653,elapsed time at Dahod does not match its printed time (TAG tables inconsistent)
+11005,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+11033,"shares a column with another train number ('22131/11033', 6.pdf p1): a time or cell note in the column applies to one of the numbers only"
+11045,elapsed time at Parbhani does not match its printed time (TAG tables inconsistent)
+11046,elapsed time at Parbhani does not match its printed time (TAG tables inconsistent)
+11062,elapsed time at Ballia does not match its printed time (TAG tables inconsistent)
+11086,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+11405,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+11801,"order of Satna and Prayagraj undetermined (same time, different tables)"
+11802,"order of Satna and Prayagraj undetermined (same time, different tables)"
+11905,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+12048,Kamakhya: times in 60.pdf p1.2 go backwards (23 h gap) - column order not trustworthy
+12145,elapsed time at Angul does not match its printed time (TAG tables inconsistent)
+12198,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+12259,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+12327,"shares a column with another train number ('12327#/12369@', 12.pdf p1): a cell note in the column applies to one of the numbers only"
+12329,"shares a column with another train number ('12329/12379@', 1.pdf p7): a time or cell note in the column applies to one of the numbers only"
+12330,"shares a column with another train number ('12330/12380', 1.pdf p3): a time or cell note in the column applies to one of the numbers only"
+12354,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+12369,"shares a column with another train number ('12327#/12369@', 12.pdf p1): a cell note in the column applies to one of the numbers only"
+12379,"shares a column with another train number ('12329/12379@', 1.pdf p7): a time or cell note in the column applies to one of the numbers only"
+12380,"shares a column with another train number ('12330/12380', 1.pdf p3): a time or cell note in the column applies to one of the numbers only"
+12421,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+12443,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+12476,"shares a column with another train number ('12476/12478', 3.pdf p8): running days 'M, Su' do not split into one group per number"
+12478,"shares a column with another train number ('12476/12478', 3.pdf p8): running days 'M, Su' do not split into one group per number"
+12520,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+12572,"order of Lucknow Jn. and Lucknow undetermined (same time, different tables)"
+12647,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+12649,"station listed twice in the merged route (Yesvantpur, Yesvantpur); TAG row order and times disagree"
+12650,"station listed twice in the merged route (Yesvantpur, Yesvantpur); TAG row order and times disagree"
+12659,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+12716,elapsed time at Manmad does not match its printed time (TAG tables inconsistent)
+12720,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+12767,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+12770,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+12788,elapsed time at Charalapalli does not match its printed time (TAG tables inconsistent)
+12868,elapsed time at Renigunta does not match its printed time (TAG tables inconsistent)
+12970,elapsed time at Arakkonam Jn. does not match its printed time (TAG tables inconsistent)
+13031,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+13115,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+13125,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+13126,elapsed time at Kamakhya does not match its printed time (TAG tables inconsistent)
+13169,elapsed time at Purnia does not match its printed time (TAG tables inconsistent)
+13281,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+13425,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+13436,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+13504,Muri: times in 73.pdf p2 go backwards (23 h gap) - column order not trustworthy
+13514,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+14011,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+14023,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+14024,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+14047,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+14049,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+14115,"order of Prayagraj and Satna undetermined (same time, different tables)"
+14116,"order of Prayagraj and Satna undetermined (same time, different tables)"
+14233,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+14309,"shares a column with another train number ('14317/14309', 3.pdf p17): running days 'Sa,Su,W,Th' do not split into one group per number"
+14317,"shares a column with another train number ('14317/14309', 3.pdf p17): running days 'Sa,Su,W,Th' do not split into one group per number"
+14503,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+14508,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+14628,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+14649,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+14674,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+14807,"order of Bildi and Bhildi undetermined (same time, different tables)"
+14813,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+14853,Varanasi: times in 79.pdf p2 go backwards (23 h gap) - column order not trustworthy
+14863,Varanasi: times in 79.pdf p1 go backwards (23 h gap) - column order not trustworthy
+14865,Varanasi: times in 79.pdf p1 go backwards (23 h gap) - column order not trustworthy
+15014,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+15021,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+15051,elapsed time at Chakia does not match its printed time (TAG tables inconsistent)
+15106,elapsed time at Deoriasadar does not match its printed time (TAG tables inconsistent)
+15111,elapsed time at Indara does not match its printed time (TAG tables inconsistent)
+15283,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+15558,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+15624,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+15629,"shares a column with another train number ('15629/15929', 29.pdf p6): a boxed start/end time inside the column (one number starts or ends there)"
+15635,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+15647,"shares a column with another train number ('15647/15945*', 24.pdf p1): footnote * of 15945 concerns halts or route: '15695 does not halt at Pipariya and runs via Katihar and not via Kiul, Bhagalpur'"
+15706,"order of Lucknow and Lucknow Jn. undetermined (same time, different tables)"
+15734,"shares a column with another train number ('15734/15744', 1.pdf p5): a time or cell note in the column applies to one of the numbers only"
+15744,"shares a column with another train number ('15734/15744', 1.pdf p5): a time or cell note in the column applies to one of the numbers only"
+15926,elapsed time at New Bongaigaon does not match its printed time (TAG tables inconsistent)
+15929,"shares a column with another train number ('15629/15929', 29.pdf p6): a boxed start/end time inside the column (one number starts or ends there)"
+15945,"shares a column with another train number ('15647/15945*', 24.pdf p1): footnote * of 15945 concerns halts or route: '15695 does not halt at Pipariya and runs via Katihar and not via Kiul, Bhagalpur'"
+16208,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+16332,Krishnarajapuram: times in 70.pdf p2 go backwards (23 h gap) - column order not trustworthy
+16572,Raichur: times in 60.pdf p1.1 go backwards (23 h gap) - column order not trustworthy
+16584,Raichur: times in 60.pdf p1.1 go backwards (23 h gap) - column order not trustworthy
+16594,Raichur: times in 60.pdf p1.1 go backwards (23 h gap) - column order not trustworthy
+16602,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+16604,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+16722,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+16733,"station listed twice in the merged route (Kacheguda, Nizamabad, Kacheguda, Nizamabad); TAG row order and times disagree"
+16788,elapsed time at Faridabad does not match its printed time (TAG tables inconsistent)
+17019,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+17020,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+17040,elapsed time at Dhone does not match its printed time (TAG tables inconsistent)
+17207,"station listed twice in the merged route (Secunderabad, Secunderabad); TAG row order and times disagree"
+17208,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+17232,elapsed time at Charalapalli does not match its printed time (TAG tables inconsistent)
+17261,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+17262,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+17315,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+17317,elapsed time at Sangli does not match its printed time (TAG tables inconsistent)
+17391,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+17392,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+17417,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+17421,"order of Ernakulam Town and Ernakulam Jn. undetermined (same time, different tables)"
+17422,"order of Ernakulam Town and Ernakulam Jn undetermined (same time, different tables)"
+17423,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+17605,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+17654,elapsed time at Chengalpattu Jn does not match its printed time (TAG tables inconsistent)
+17683,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+18111,published times would jump by more than 12 h at Yesvantpur (stop order not trustworthy)
+18112,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+18118,elapsed time at Dhenkanal does not match its printed time (TAG tables inconsistent)
+18625,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+18756,fewer than 2 usable stops
+19014,Khandwa: times in 24.pdf p8 go backwards (23 h gap) - column order not trustworthy
+19037,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+19269,elapsed time at Mahesana does not match its printed time (TAG tables inconsistent)
+19270,elapsed time at Viramgam does not match its printed time (TAG tables inconsistent)
+19320,elapsed time at Surendra Nagar does not match its printed time (TAG tables inconsistent)
+19435,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+19436,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+19571,fewer than 2 usable stops
+19572,fewer than 2 usable stops
+19576,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+19603,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+19604,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+19615,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+19623,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+19670,"order of Udaipur City and Udaipur undetermined (same time, different tables)"
+19714,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+19815,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+19816,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+19822,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+20502,elapsed time at Badarpur does not match its printed time (TAG tables inconsistent)
+20505,elapsed time at New Bongaigaon does not match its printed time (TAG tables inconsistent)
+20507,elapsed time at New Cooch Behar does not match its printed time (TAG tables inconsistent)
+20629,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+20630,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+20668,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+20677,"order of Nidubrolu and Tenali undetermined (same time, different tables)"
+20694,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+20807,"station listed twice in the merged route (New Delhi, New Delhi); TAG row order and times disagree"
+20808,Bhubaneswar is reached before the train leaves Virangana Laxmibai Jhansi (TAG tables disagree on the route)
+20824,elapsed time at Vadodara does not match its printed time (TAG tables inconsistent)
+20830,elapsed time at Durg does not match its printed time (TAG tables inconsistent)
+20832,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+20918,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+20937,elapsed time at Mahesana does not match its printed time (TAG tables inconsistent)
+20966,fewer than 2 usable stops
+21901,elapsed time at Mahesana does not match its printed time (TAG tables inconsistent)
+21904,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22110,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22131,"shares a column with another train number ('22131/11033', 6.pdf p1): a time or cell note in the column applies to one of the numbers only"
+22152,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22156,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22199,"order of Lucknow and Lucknow Jn. undetermined (same time, different tables)"
+22305,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22357,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22411,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22482,Gurgaon: times in 59.pdf p1 go backwards (23 h gap) - column order not trustworthy
+22484,elapsed time at Samdari does not match its printed time (TAG tables inconsistent)
+22486,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22498,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22501,elapsed time at New Jalpaiguri Jn. does not match its printed time (TAG tables inconsistent)
+22502,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22512,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22544,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22548,elapsed time at Dhaulpur does not match its printed time (TAG tables inconsistent)
+22583,"order of GOY and Kanpur undetermined (same time, different tables)"
+22605,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22648,elapsed time at Gondia does not match its printed time (TAG tables inconsistent)
+22705,elapsed time at Delhi Safdarjung does not match its printed time (TAG tables inconsistent)
+22706,elapsed time at Delhi Sarai Rohilla does not match its printed time (TAG tables inconsistent)
+22724,elapsed time at Akola does not match its printed time (TAG tables inconsistent)
+22804,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22852,elapsed time at Tirupati does not match its printed time (TAG tables inconsistent)
+22865,elapsed time at Angul does not match its printed time (TAG tables inconsistent)
+22901,"order of Udaipur and Udaipur City undetermined (same time, different tables)"
+22922,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22937,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22941,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22958,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+22977,Merta Road: times in 28.pdf p1 go backwards (23 h gap) - column order not trustworthy
+26102,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
+26506,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage

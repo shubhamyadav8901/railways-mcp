@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Byte-compile the timetable ETL
+        run: python -m py_compile scripts/tag/*.py
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build image
+        run: docker build -t indian-railways-mcp:ci .
+      - name: Start container and check health
+        run: |
+          docker run -d --name mcp -p 127.0.0.1:3000:3000 -e ALLOWED_HOSTS=localhost,127.0.0.1 indian-railways-mcp:ci
+          for i in $(seq 1 30); do curl -sf localhost:3000/healthz && exit 0; sleep 1; done
+          docker logs mcp; exit 1

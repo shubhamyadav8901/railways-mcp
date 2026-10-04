@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "data": {
+    "trainNumber": "12301",
+    "route": [
+      { "sequence": 1, "stationCode": "HWH", "stationName": "Howrah Jn", "arrivalDelayMinutes": 0, "departureDelayMinutes": 0, "scheduledDeparture": "16:40" },
+      { "sequence": 2, "stationCode": "ASN", "stationName": "Asansol Jn", "arrivalDelayMinutes": 11, "departureDelayMinutes": 14, "scheduledArrival": "18:40", "scheduledDeparture": "18:42" },
+      { "sequence": 3, "stationCode": "DHN", "stationName": "Dhanbad Jn", "arrivalDelayMinutes": 9, "departureDelayMinutes": 10, "scheduledArrival": "19:45", "scheduledDeparture": "19:50" },
+      { "sequence": 4, "stationCode": "PNME", "stationName": "Parasnath", "arrivalDelayMinutes": 13, "departureDelayMinutes": 15, "scheduledArrival": "20:25", "scheduledDeparture": "20:27" },
+      { "sequence": 5, "stationCode": "GAYA", "stationName": "Gaya Jn", "arrivalDelayMinutes": -3, "departureDelayMinutes": 2, "scheduledArrival": "22:25", "scheduledDeparture": "22:28" },
+      { "sequence": 6, "stationCode": "DDU", "stationName": "Pt. Deen Dayal Upadhyaya Jn", "arrivalDelayMinutes": 15, "departureDelayMinutes": 16, "scheduledArrival": "00:35", "scheduledDeparture": "00:42" },
+      { "sequence": 7, "stationCode": "PRYJ", "stationName": "Prayagraj Jn", "arrivalDelayMinutes": 12, "departureDelayMinutes": 14, "scheduledArrival": "02:30", "scheduledDeparture": "02:32" },
+      { "sequence": 8, "stationCode": "CNB", "stationName": "Kanpur Central", "arrivalDelayMinutes": 18, "departureDelayMinutes": 19, "scheduledArrival": "04:35", "scheduledDeparture": "04:40" },
+      { "sequence": 9, "stationCode": "NDLS", "stationName": "New Delhi", "arrivalDelayMinutes": 21, "departureDelayMinutes": 0, "scheduledArrival": "09:55" }
+    ]
+  }
+}

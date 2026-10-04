@@ -1,0 +1,14 @@
+Indian Railways MCP Server
+Copyright 2026 The railways-mcp contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Bundled data (see DISCLAIMER.md for details):
+- data/tag2026.json.gz is derived from the Indian Railways Railway Board's
+  "Trains at a Glance 2026" publication (indianrailways.gov.in).
+- data/datameet2016.json.gz is derived from the datameet/railways community
+  dataset (https://github.com/datameet/railways), released under CC0 1.0.
+- Geocoding results, when enabled, are © OpenStreetMap contributors (ODbL).
+
+This project is not affiliated with or endorsed by Indian Railways, IRCTC,
+CRIS or any third-party website it can query.

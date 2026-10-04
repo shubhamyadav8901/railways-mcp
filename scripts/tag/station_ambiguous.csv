@@ -1,0 +1,9 @@
+# TAG names that refer to different stations in different places. Their code is chosen per train by
+# route geography (build.py: resolve_ambiguous); when no candidate is clearly best the code stays null.
+# candidates = space-separated station codes (all must have coordinates in data/datameet2016.json.gz).
+tag_name,candidates,note
+Rajendranagar,RJQ RJPB,RJQ = Rajendranagar (Indore, MP); RJPB = Rajendra Nagar Terminal (Patna)
+Rajendra Nagar,RJQ RJPB,RJQ = Rajendranagar (Indore, MP); RJPB = Rajendra Nagar Terminal (Patna)
+Rajendra Nagar (T),RJQ RJPB,
+Rajendranagar (T),RJQ RJPB,
+Dadar,DR DDR,Central (DR) and Western (DDR) Dadar are ~300 m apart: geography cannot separate them
