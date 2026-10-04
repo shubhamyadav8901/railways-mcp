@@ -221,7 +221,8 @@ def split_table_cell(text: str, nums: list[str], own_tables: dict) -> dict:
     for n in nums:
         c = [p for p in parts if fits(n, p)]
         out[n] = c[0] if len(c) == 1 else ""
-    return out
+    claimed = [p for p in out.values() if p]
+    return {n: p if claimed.count(p) == 1 else "" for n, p in out.items()}   # a part two numbers claim: neither
 
 
 def split_shared(raw: dict, own_days: dict, own_tables: dict | None = None):
@@ -457,8 +458,11 @@ def _merge_component(comp, off, warns):
             for x in (p, m):
                 x["flags"] = x["flags"] - SINGLE_AMBIG
         if disjoint and p["arr"] == m["arr"] and p["dep"] == m["dep"]:
+            if p.get("conflict"):   # a further name for an omitted halt: omitted with it
+                p["inst"] = p["inst"] + m["inst"]
+                continue
             if p["code"] and m["code"] and p["code"] != m["code"]:
-                if p["arr"] and p["dep"] and not p.get("conflict"):
+                if p["arr"] and p["dep"]:
                     # the same arrival AND departure at two different stations in two tables: one halt
                     # that the tables name differently (Lucknow LKO / Lucknow Jn. LJN). A train cannot
                     # be at both, and which one it uses is not certain, so the halt is omitted.
@@ -641,7 +645,7 @@ def resolve_ambiguous(merged, matcher, warns, stats):
         # count: a terminal Dadar is left null, as such trains are often re-terminated). Each candidate is
         # counted in the datameet 2016 routes that serve it between those neighbours; one candidate needs
         # >= LINE_MIN routes and every other none, and every other must itself be served by some 2016
-        # route (a code absent from the 2016 routes says nothing about its line). When the zones of the
+        # route (a code absent from the 2016 routes says nothing about its line) or stand at the winner's point. When the zones of the
         # winner and both neighbours are known, the winner's must equal at least one neighbour's.
         pc = next((c for j, c in reversed(orig) if j < i), None)
         nc = next((c for j, c in orig if j > i), None)

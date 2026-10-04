@@ -61,6 +61,9 @@ def check_split_table_cell():
     # both numbers run in both tables: the order cannot be confirmed -> nothing for either
     own = {"1": {63, 22}, "2": {63, 22}}
     assert split("63/22", ["1", "2"], own) == {"1": "", "2": ""}
+    # both numbers fit only the same part: it cannot belong to both -> nothing for either
+    own = {"1": {63}, "2": {63}}
+    assert split("63/22", ["1", "2"], own) == {"1": "", "2": ""}
 
 
 def _seg(sid, stops):
@@ -95,6 +98,10 @@ def check_same_halt_two_names():
     assert [x["code"] for x in m] == ["CNB", "GD", "GKP"], [x["code"] for x in m]
     assert build._ordered(m) is None
     assert any("which one the train uses is not certain" in w for w in warns)
+    # a third table naming the same halt with yet another code is omitted with it
+    c = _seg(3, [("ASH", "Aishbagh", "02:30", "02:40", (), False), ("GD", "Gonda", "05:00", "05:05", (), False)])
+    m = build._merge_component([a, b, c], {**off, 3: 100}, [])
+    assert [x["code"] for x in m] == ["CNB", "GD", "GKP"], [x["code"] for x in m]
     # two different stations with the same SINGLE time stay unresolved (Satna / Prayagraj): excluded
     a = _seg(1, [("MKP", "Manikpur", "15:20", "15:25", (), False), ("STA", "Satna", None, "18:30", ("single_by_marker",), False)])
     b = _seg(2, [("MKP", "Manikpur", "15:20", "15:25", (), False), ("PRYJ", "Prayagraj", None, "18:30", ("single_centered",), True)])
