@@ -144,7 +144,12 @@ export function compact(v: Verification): Verification {
 
 /** A verifier for one tool call, with the configured budget and station code equivalences. */
 export function newVerifier(ctx: AppContext, date?: string): Verifier {
-  return new Verifier(ctx.registry, { budgetMs: ctx.verifyBudgetMs, codes: ctx.codes, date });
+  return new Verifier(ctx.registry, {
+    budgetMs: ctx.verifyBudgetMs,
+    codes: ctx.codes,
+    date,
+    presentOperational: ctx.primarySource === "confirmtkt",
+  });
 }
 
 /** Note for lists containing trains with seasonal timings (items carry `valid`). */

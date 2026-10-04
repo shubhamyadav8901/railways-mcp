@@ -58,16 +58,19 @@ All tools are read-only and annotated `readOnlyHint: true`.
 | **etrain.info** | Unofficial | Delay history: dated per-run delays per station, up to 1 year, about a week behind | Off; `ENABLE_UNOFFICIAL_SOURCES=etrain` |
 | **NTES** average delay | Official site (CRIS), on-demand only | 7-day average arrival/departure delay per station, used as a cross-check. Its terms forbid building a database or commercial use; cached in memory for at most 30 min, never stored | Off; `…=ntes` |
 | **RailRadar** | Unofficial internal endpoint | Average delay per station (window unstated) and scheduled times per halt, used as cross-checks for punctuality and schedules | Off; `…=railradar` |
-| **ConfirmTkt** web-app API | Unofficial, undocumented | Current trains between stations, cached availability and fares, station search | Off; `ENABLE_UNOFFICIAL_SOURCES=confirmtkt` |
+| **ConfirmTkt** web-app API | Unofficial, undocumented | Current trains between stations and schedules, cached availability and fares, station search | Off; `ENABLE_UNOFFICIAL_SOURCES=confirmtkt` |
 | **eRail** | Unofficial, undocumented | Current schedules and trains between stations | Off; `ENABLE_UNOFFICIAL_SOURCES=erail` |
 
 Priority per capability, first answer wins:
-- schedule: official → eRail → RailRadar → archived
+- stations: official → archived → ConfirmTkt
+- schedule: official → eRail → RailRadar → ConfirmTkt → archived
 - trains between: official → ConfirmTkt → eRail → archived
 - availability and fares: ConfirmTkt (when enabled)
 - delay history: etrain → NTES → RailRadar. The first that answers is the primary; the others cross-check it.
 
 When an answer comes from a lower-priority source, `source.notes` says why.
+
+**`PRIMARY_SOURCE=confirmtkt`** (opt-in; needs `confirmtkt` in `ENABLE_UNOFFICIAL_SOURCES`) moves ConfirmTkt to the front for stations, schedules and trains between, so the current operational timetable is what's shown and the official timetable becomes a cross-check (and the fallback when ConfirmTkt fails). Where ConfirmTkt and another operational service agree against the printed timetable, the status is `updated` and the printed value is listed under `verification.conflicts[].majority.differs`. ConfirmTkt only serves today's timings, so for a date on which the official timetable has other seasonal timings (e.g. Konkan monsoon) the official timetable answers. Station rows keep ConfirmTkt's values and fill its unknown fields (zone, state, coordinates) from the local datasets, listed under `filled_from`. Station boards, nearby stations and connections always use the local timetables. `get_data_sources` reports `primary_source` and which source is presented first per capability. Read [DISCLAIMER.md](DISCLAIMER.md) on ConfirmTkt's terms before enabling it.
 
 **About the unofficial sources.** Indian Railways publishes no free public API for availability, fares or delay history. ConfirmTkt and eRail are undocumented endpoints of third-party sites. They may change without notice, and using them may breach those sites' terms. They ship disabled; enable them only if you've decided that's acceptable for your use. With them disabled, those tools return `UNSUPPORTED` with instructions.
 
@@ -129,6 +132,7 @@ All settings are optional; see `.env.example`.
 | `ALLOWED_HOSTS` | Host-header allow-list (default in compose: `localhost,127.0.0.1`) |
 | `ENABLE_UNOFFICIAL_SOURCES` | `confirmtkt,erail,etrain,ntes,railradar` (opt-in; see [DISCLAIMER.md](DISCLAIMER.md)) |
 | `CONFIRMTKT_CLIENT_ID`, `CONFIRMTKT_API_KEY`, `ERAIL_ROUTE_KEY` | Client settings those sources need; not included in this repository |
+| `PRIMARY_SOURCE` | `official` (default) or `confirmtkt`: whose answer is shown for stations, schedules and trains between (see [Data sources](#data-sources)) |
 | `GEOCODER` | `nominatim` (default) or `off` |
 | `NOMINATIM_EMAIL`, `HTTP_USER_AGENT` | Identify your instance to upstream services |
 

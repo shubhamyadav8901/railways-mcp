@@ -116,7 +116,20 @@ flowchart TB
 | `get_punctuality` | `punctuality` | Per station, ±10 min with windows | Statistics from dated runs only |
 | `get_seat_availability` | `availability` | `not_applicable` (volatile) | `observed_at` from source |
 | `get_fare` | `fare` | `not_applicable` (volatile) | `observed_at` from source |
-| `get_data_sources` | — | — | Active and disabled sources; today's date in IST |
+| `get_data_sources` | — | — | Active and disabled sources; today's date in IST; `primary_source`, `presented_first` |
+
+## Provider order
+
+`buildContext` (src/config.ts) registers providers per capability in priority order. `ProviderRegistry.first()` presents the first answer and falls through on any failure except `INVALID_INPUT`, adding "Fell back from …" to `source.notes`. The verifier asks the rest as cross-checks.
+
+| Capability | Default (`PRIMARY_SOURCE` unset) | `PRIMARY_SOURCE=confirmtkt` |
+|---|---|---|
+| `stations` | official → archived → ConfirmTkt | **ConfirmTkt** → official → archived |
+| `schedule` | official → eRail → RailRadar → ConfirmTkt → archived | **ConfirmTkt** → official → eRail → RailRadar → archived |
+| `trains_between` | official → ConfirmTkt → eRail → archived | **ConfirmTkt** → official → eRail → archived |
+| `station_index`, `punctuality`, `availability`, `fare`, `geocode` | unchanged | unchanged |
+
+Whole-network tools (`get_station_trains`, `find_connections`, `find_nearby_stations`) always use the local timetables. ConfirmTkt serves only the timings in force today, so `buildContext` gives it the official timetable's seasonal-variant lookup (`LocalTimetableProvider.sameTimingsAs`): for a date whose variant differs from today's it throws `UNSUPPORTED` (schedules) or drops that train (trains between), and the official timetable answers.
 
 All tools are annotated `readOnlyHint: true`, `destructiveHint: false`, with a `title`.
 

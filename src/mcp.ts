@@ -17,9 +17,14 @@ const INSTRUCTIONS = `Indian Railways timetables, journey planning, punctuality 
 - Static facts carry verification.status (confirmed / majority / updated / partially_confirmed / conflict / single_source / not_checked) from cross-checking sources; evidence is counted by upstream (services sharing Indian Railways' operational data count once). See the verification note in each response.
 - get_data_sources lists which sources and capabilities are active. Errors have a code (NOT_FOUND, UNSUPPORTED, UPSTREAM_UNAVAILABLE, RATE_LIMITED, INVALID_INPUT) and mean the value is unknown.`;
 
+/** Added when PRIMARY_SOURCE=confirmtkt. */
+const OPERATIONAL_PRIMARY = `
+- Stations, trains between stations and train schedules come from ConfirmTkt (current operational data) when it answers (source.provider says which source answered); the official timetable is a cross-check, and where it differs the printed value is listed under verification.conflicts[].majority.differs.`;
+
 /** A fresh MCP server bound to shared app context (cheap: tools only close over ctx). */
 export function createMcpServer(ctx: AppContext): McpServer {
-  const server = new McpServer(SERVER_INFO, { instructions: INSTRUCTIONS });
+  const instructions = ctx.primarySource === "confirmtkt" ? INSTRUCTIONS + OPERATIONAL_PRIMARY : INSTRUCTIONS;
+  const server = new McpServer(SERVER_INFO, { instructions });
   registerStationTools(server, ctx);
   registerTrainTools(server, ctx);
   registerJourneyTools(server, ctx);

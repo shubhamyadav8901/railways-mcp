@@ -1,0 +1,65 @@
+{
+  "TrainName": "SYNTHETIC NIGHT EXP",
+  "TrainNo": "19999",
+  "SourceCode": "AAA",
+  "DestinationCode": "DDD",
+  "DaysOfRun": { "Sun": false, "Mon": true, "Tue": false, "Wed": true, "Thu": false, "Fri": true, "Sat": false },
+  "TotalDuration": "11:15",
+  "CacheTime": "2026-01-15T10:30:00.000",
+  "ErrorMsg": null,
+  "Classes": ["2A", "3A", "SL"],
+  "Schedule": [
+    {
+      "StationCode": "AAA",
+      "StationName": "Alpha Junction",
+      "StopNumber": 1,
+      "ArrivalTime": "",
+      "DepartureTime": "22:00",
+      "HaltMinutes": 0,
+      "Distance": "0.0",
+      "Day": 1,
+      "Latitude": 10.1,
+      "Longitude": 70.1,
+      "intermediateStations": [{ "StationCode": "AXY", "StationName": "Alpha Yard", "Distance": "4.0" }]
+    },
+    {
+      "StationCode": "BBB",
+      "StationName": "Bravo",
+      "StopNumber": 2,
+      "ArrivalTime": "23:50",
+      "DepartureTime": "00:05",
+      "HaltMinutes": 15,
+      "Distance": "120.5",
+      "Day": 1,
+      "Latitude": 10.2,
+      "Longitude": 70.2,
+      "intermediateStations": []
+    },
+    {
+      "StationCode": "CCC",
+      "StationName": "Charlie Cantt",
+      "StopNumber": 3,
+      "ArrivalTime": "05:30",
+      "DepartureTime": "05:40",
+      "HaltMinutes": 10,
+      "Distance": "431.0",
+      "Day": 2,
+      "Latitude": 10.3,
+      "Longitude": 70.3,
+      "intermediateStations": []
+    },
+    {
+      "StationCode": "DDD",
+      "StationName": "Delta Road",
+      "StopNumber": 4,
+      "ArrivalTime": "09:15",
+      "DepartureTime": "",
+      "HaltMinutes": 0,
+      "Distance": "602.0",
+      "Day": 2,
+      "Latitude": 10.4,
+      "Longitude": 70.4,
+      "intermediateStations": []
+    }
+  ]
+}
