@@ -90,10 +90,14 @@ flowchart TD
   M -- Yes --> FM([field = majority])
   M -- No --> U{Primary stands alone against ≥ 2 agreeing services<br/>sharing one upstream that isn't the primary's,<br/>and no rival group of ≥ 2?}
   U -- Yes --> FU([field = updated: their value is shown<br/>as the current running timetable])
-  U -- No --> FC([field = conflict<br/>each source's value listed])
+  U -- No --> MR{presentOperational, and the primary plus ≥ 1 more service<br/>on its upstream agree, none on it dissents,<br/>and exactly one other value backed by one other upstream?}
+  MR -- Yes --> FMR([field = updated: the primary's value stays,<br/>the other under majority.differs])
+  MR -- No --> FC([field = conflict<br/>each source's value listed])
 ```
 
 A settled value that replaces the primary's is recorded under `corrections` with its `basis` (`majority` or `updated`, the latter naming the `shared_upstream`). It can only be shown where the caller can apply it; otherwise the field stays a conflict.
+
+**The mirror rule (`PRIMARY_SOURCE=confirmtkt`).** With ConfirmTkt presented first, the verifier sets `presentOperational`. `updated` then also covers the mirror case: the primary (an evidence source) and at least one other service share its upstream and agree, no service on that upstream reports anything else, and exactly one other value differs, backed by exactly one other upstream (in practice the printed timetable). The primary's value is already the one shown, so no correction is recorded and `applyCorrections` changes nothing. The conflict entry carries `majority: { value, sources, basis: "updated", shared_upstream, differs: [{ source, value }] }`, where `differs` discloses the printed value. It is still not independent confirmation: `confirmed` always needs two distinct upstreams. ConfirmTkt alone against the printed timetable, a dissenting operational service, or two other values stay `conflict`. When independent upstreams outvote ConfirmTkt (e.g. the official timetable and the archive on a station field), the ordinary majority rule applies and the correction replaces ConfirmTkt's value. Without the setting the rule is off.
 
 \* Equality is exact for times, days and codes, set equality for running days and classes, ±2 km for distance, ≤1 km for coordinates. Comparison ignores key order.
 \*\* Evidence is counted by **upstream** (`ProviderInfo.upstream`): eRail, ConfirmTkt, RailRadar, etrain.info and NTES are tagged as Indian Railways' operational data and count once. **Not evidence:** the archived dataset for timetable facts; coordinates a dataset copied from another (`coordinatesIndependent` must be declared by local datasets, so this fails closed); a second identical coordinate pair.

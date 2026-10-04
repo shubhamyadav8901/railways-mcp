@@ -5,6 +5,8 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 ## [Unreleased]
 
 ### Added
+- **`PRIMARY_SOURCE=confirmtkt`** (opt-in, default `official`): ConfirmTkt's current operational data is presented first for stations, schedules and trains between, and the official timetable becomes a cross-check and fallback. When ConfirmTkt and another operational service agree against the printed timetable, the status is `updated` with the printed value under the new `verification.conflicts[].majority.differs` (nothing is corrected). Station rows fill ConfirmTkt's unknown fields from the local datasets and say so in `filled_from`. `get_data_sources` reports `primary_source` and `presented_first`. Startup fails on an unknown value, or on `confirmtkt` without ConfirmTkt enabled.
+- **ConfirmTkt schedules** (`/api/v1/trains/schedule`), a third operational schedule cross-check when ConfirmTkt is enabled. ConfirmTkt only serves today's timings, so it declines dates on which the official timetable has other seasonal timings, for schedules and for trains between.
 - **Prebuilt Docker image** on GitHub Container Registry (`ghcr.io/shubhamyadav8901/railways-mcp`, amd64 and arm64), published for each release by a new workflow. The README shows how to run it without cloning.
 
 ### Fixed
