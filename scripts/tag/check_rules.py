@@ -116,7 +116,26 @@ def check_same_single_time_explicit_role():
     assert not (last["flags"] & build.SINGLE_AMBIG)
 
 
-CHECKS = [check_km_via_heading, check_split_table_cell, check_same_halt_two_names, check_same_single_time_explicit_role]
+def check_line_rule_unserved_twin():
+    """resolve_ambiguous on the real datameet 2016 data: a candidate no 2016 route serves, at the
+    winner's own point, does not block the line choice; two served codes at one point still do."""
+    from collections import Counter
+    import build
+    matcher = build.StationMatcher()
+
+    def resolve(prev, name, nxt):
+        merged = [{"code": prev}, {"code": None, "name": name, "cands": matcher.candidates(name)}, {"code": nxt}]
+        build.resolve_ambiguous(merged, matcher, [], Counter())
+        return merged[1]["code"]
+    assert resolve("MSH", "Kalol", "ADI") == "KLL"        # KLLF: 20 m away, on no 2016 route
+    assert resolve("GWL", "Dhaulpur", "AGC") == "DHO"     # DHOA: 60 m away, on no 2016 route
+    assert resolve("RJT", "Jetalsar", "VRL") == "JLR"     # JLRF: 30 m away, on no 2016 route
+    assert resolve("JSM", "Phalodi", "LGH") is None       # PLC/PLCJ: both on 2016 routes at one point
+    assert resolve("MSH", "Sabarmati", "ADI") is None     # SBI/SBT: both on the same 2016 routes
+
+
+CHECKS = [check_km_via_heading, check_split_table_cell, check_same_halt_two_names, check_same_single_time_explicit_role,
+          check_line_rule_unserved_twin]
 
 if __name__ == "__main__":
     for c in CHECKS:

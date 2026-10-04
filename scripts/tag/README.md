@@ -138,12 +138,18 @@ single entry with no `valid`.
   equivalence group, the group's current code is used. Same-place stations on different lines (Dadar DR Central /
   DDR Western) are then placed by line: with coded stops on both sides, a candidate is chosen when at least 3
   datameet 2016 routes serve it between those two stops and none serves any other candidate there, every other
-  candidate is served by some 2016 route, no other candidate sits at the same point (Phalodi PLC/PLCJ: one station,
-  two codes), and known zones agree. Otherwise code=null. Of 324 ambiguous stops: 40 resolved by geography (all
-  Rajendranagar -> RJPB), 7 by equivalence (New Jalpaiguri Jn. -> NJP, Velankanni -> VLNK), 124 by line (Dadar DR 100,
-  DDR 2, Lal Kuan LKU 13, Alipurduar APDJ 5, Aishbagh ASH 3, Govindpuri GOY 1; 116/116 verifiable against eRail routes
-  correct, 8 terminal-adjacent Dadar stops not on eRail's current route), 153 left null (Sabarmati SBI/SBT, terminal
-  Dadar, Kalol KLL/KLLF, Dhaulpur DHO/DHOA, ...).
+  candidate is served by some 2016 route, no other served candidate sits at the same point (Phalodi PLC/PLCJ: one
+  station, two codes), and known zones agree. An other candidate that no 2016 route serves is allowed only when it
+  stands within 100 m of the chosen one (Kalol KLL/KLLF, Dhaulpur DHO/DHOA, Jetalsar JLR/JLRF): the 2016 routes list
+  every station they pass, so every 2016 train through that point used the chosen code. Otherwise code=null. Of 328
+  ambiguous stops: 40 resolved by geography (all Rajendranagar -> RJPB), 7 by equivalence (New Jalpaiguri Jn. -> NJP,
+  Velankanni -> VLNK), 150 by line (Dadar DR 100, DDR 2, Lal Kuan LKU 13, Dhaulpur DHO 11, Jetalsar JLR 8, Kalol KLL 7,
+  Alipurduar APDJ 5, Aishbagh ASH 3, Govindpuri GOY 1; 142/142 verifiable against eRail routes correct, 8
+  terminal-adjacent Dadar stops not on eRail's current route), 131 left null (Sabarmati, terminal Dadar, Kalol next to
+  an uncoded Sabarmati or between Gandhinagar and Mahesana, a line fewer than 3 2016 routes serve, Phalodi PLC/PLCJ,
+  ...). Sabarmati: datameet 2016 lists SBI and SBT as
+  consecutive points on the same routes, and current routes use SBIB (Mahesana line) and SBT (Chandlodiya line), so
+  neither 2016 code can be chosen from TAG and datameet alone.
 * **Station equivalences** (`data/station_equivalences.json`, built by `build_equivalences.py`). TAG codes are not
   rewritten; consumers canonicalise with the table. There are three candidate sources:
   * TAG-vs-eRail route position with identical times.

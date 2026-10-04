@@ -655,8 +655,16 @@ def resolve_ambiguous(merged, matcher, warns, stats):
         # two codes at one point that 2016 routes both serve are one station under two codes (Phalodi
         # PLC/PLCJ): the 2016 route code need not be today's, so no choice is made
         wxy = matcher.coords(win)
-        twin = any(wxy and matcher.coords(c) and _km(wxy, matcher.coords(c)) < 0.05 for _, c in sup[1:])
-        served = all(matcher.route_pos.get(c) for _, c in sup[1:])
+
+        def at_win(c, km):
+            xy = matcher.coords(c)
+            return bool(wxy and xy and _km(wxy, xy) < km)
+        others = [c for _, c in sup[1:]]
+        twin = any(matcher.route_pos.get(c) and at_win(c, 0.05) for c in others)
+        # an other candidate that no 2016 route serves says nothing about its line, unless it stands at the
+        # winner's own point (< 100 m, e.g. Kalol KLL/KLLF, Dhaulpur DHO/DHOA): the 2016 routes list every
+        # station they pass, so every 2016 train through that point was listed under the winner's code
+        served = all(matcher.route_pos.get(c) or at_win(c, 0.1) for c in others)
         if sup[0][0] >= LINE_MIN and all(x[0] == 0 for x in sup[1:]) and zone_ok and not twin and served:
             m["code"] = win
             stats["ambiguous_resolved_line"] += 1
