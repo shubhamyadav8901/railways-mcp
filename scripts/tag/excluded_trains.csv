@@ -32,7 +32,6 @@ train,reason
 12476,"shares a column with another train number ('12476/12478', 3.pdf p8): running days 'M, Su' do not split into one group per number"
 12478,"shares a column with another train number ('12476/12478', 3.pdf p8): running days 'M, Su' do not split into one group per number"
 12520,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
-12572,"order of Lucknow Jn. and Lucknow undetermined (same time, different tables)"
 12647,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 12649,"station listed twice in the merged route (Yesvantpur, Yesvantpur); TAG row order and times disagree"
 12650,"station listed twice in the merged route (Yesvantpur, Yesvantpur); TAG row order and times disagree"
@@ -69,7 +68,6 @@ train,reason
 14628,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 14649,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 14674,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
-14807,"order of Bildi and Bhildi undetermined (same time, different tables)"
 14813,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 14853,Varanasi: times in 79.pdf p2 go backwards (23 h gap) - column order not trustworthy
 14863,Varanasi: times in 79.pdf p1 go backwards (23 h gap) - column order not trustworthy
@@ -85,7 +83,6 @@ train,reason
 15629,"shares a column with another train number ('15629/15929', 29.pdf p6): a boxed start/end time inside the column (one number starts or ends there)"
 15635,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 15647,"shares a column with another train number ('15647/15945*', 24.pdf p1): footnote * of 15945 concerns halts or route: '15695 does not halt at Pipariya and runs via Katihar and not via Kiul, Bhagalpur'"
-15706,"order of Lucknow and Lucknow Jn. undetermined (same time, different tables)"
 15734,"shares a column with another train number ('15734/15744', 1.pdf p5): a time or cell note in the column applies to one of the numbers only"
 15744,"shares a column with another train number ('15734/15744', 1.pdf p5): a time or cell note in the column applies to one of the numbers only"
 15926,elapsed time at New Bongaigaon does not match its printed time (TAG tables inconsistent)
@@ -114,8 +111,6 @@ train,reason
 17391,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 17392,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 17417,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
-17421,"order of Ernakulam Town and Ernakulam Jn. undetermined (same time, different tables)"
-17422,"order of Ernakulam Town and Ernakulam Jn undetermined (same time, different tables)"
 17423,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 17605,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 17654,elapsed time at Chengalpattu Jn does not match its printed time (TAG tables inconsistent)
@@ -139,7 +134,6 @@ train,reason
 19604,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 19615,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 19623,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
-19670,"order of Udaipur City and Udaipur undetermined (same time, different tables)"
 19714,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 19815,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 19816,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
@@ -166,7 +160,6 @@ train,reason
 22131,"shares a column with another train number ('22131/11033', 6.pdf p1): a time or cell note in the column applies to one of the numbers only"
 22152,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 22156,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
-22199,"order of Lucknow and Lucknow Jn. undetermined (same time, different tables)"
 22305,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 22357,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 22411,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
@@ -179,7 +172,6 @@ train,reason
 22512,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 22544,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 22548,elapsed time at Dhaulpur does not match its printed time (TAG tables inconsistent)
-22583,"order of GOY and Kanpur undetermined (same time, different tables)"
 22605,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 22648,elapsed time at Gondia does not match its printed time (TAG tables inconsistent)
 22705,elapsed time at Delhi Safdarjung does not match its printed time (TAG tables inconsistent)
@@ -188,7 +180,6 @@ train,reason
 22804,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 22852,elapsed time at Tirupati does not match its printed time (TAG tables inconsistent)
 22865,elapsed time at Angul does not match its printed time (TAG tables inconsistent)
-22901,"order of Udaipur and Udaipur City undetermined (same time, different tables)"
 22922,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 22937,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage
 22941,route split over TAG tables that share no station and cannot be ordered by TAG's table linkage

@@ -132,6 +132,33 @@ def _join_lines(words):
     return re.sub(r"\s+", " ", text).strip()
 
 
+def _drop_km_via_heading(words):
+    """words[0] is a "Km.via" km-column heading in a station row; return the row's other words
+    without the heading's place name.
+    The place is printed on the line(s) below "Km.via", starting inside its width, while the station
+    name stands beside it (18.pdf: "Km.via / Barauni" next to "Guwahati"). A place may have several
+    words ("Km.via / New Jalpaiguri"): each such line keeps the words that follow its first word with
+    gaps of at most 3 pt (a space is ~1.1-1.4 pt; the station-name column is further away). The first
+    word must fit inside the heading's width. Otherwise (nothing below, or nothing would be left for
+    the station name) the place is the next word, as before."""
+    h, rest = words[0], words[1:]
+    place = []
+    for first in rest:
+        if not (first["top"] > h["top"] and h["x0"] - 3 <= first["x0"] <= h["x1"]) or any(first is p for p in place):
+            continue
+        # the words of first's line (same top within 1 pt; words are extracted with y_tolerance=1)
+        line = sorted((w for w in rest if abs(w["top"] - first["top"]) < 1 and w["x0"] >= first["x0"]), key=lambda w: w["x0"])
+        run = [line[0]]
+        for w in line[1:]:
+            if w["x0"] - run[-1]["x1"] > 3:
+                break
+            run.append(w)
+        place += [w for w in run if not any(w is p for p in place)]
+    if not place or len(place) == len(rest) or any(w["x1"] > h["x1"] + 3 for w in place[:1]):
+        place = [rest[0]]
+    return [w for w in rest if not any(w is p for p in place)]
+
+
 def norm_time(s):
     m = TIME_RE.match(s)
     if not m:
@@ -451,13 +478,7 @@ def parse_page(pdf_name: str, pno: int, page, _cropped=False, _sub=0, _notes=Non
             body.append({"band": (y0, y1), "name": "", "km": None, "skip": True, "mk": {"L": {}, "R": {}}})
             continue
         if rest and re.fullmatch(r"(?i)km\.?via", rest[0]["text"]) and len(rest) > 2:
-            # "Km. via Delhi" km-column heading in the first row. Its place name is the next word, or,
-            # when printed on the line below "Km.via" inside its width while the station name stands
-            # beside it (18.pdf: "Km.via / Barauni" next to "Guwahati"), that word.
-            h = rest[0]
-            under = [w for w in rest[1:] if w["top"] > h["top"] and w["x0"] >= h["x0"] - 3 and w["x1"] <= h["x1"] + 3]
-            place = under[0] if len(under) == 1 else rest[1]
-            rest = [w for w in rest[1:] if w is not place]
+            rest = _drop_km_via_heading(rest)
         # leftovers of km / marker columns that did not separate cleanly
         rest = [w for w in rest if not re.fullmatch(r"(?i)(km\.?\d*|[\d$*/]+|\.?[ads])", w["text"])]
         body.append({"band": (y0, y1), "name": _join_lines(rest), "km": km,

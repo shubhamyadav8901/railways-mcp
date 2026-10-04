@@ -29,6 +29,7 @@ there lists page warnings. `excluded_trains.csv` (written by `build.py`) lists e
 | `build_equivalences.py` | verified same-station code groups -> `data/station_equivalences.json` |
 | `build.py` | split/merge segments per train, days, classes, output |
 | `validate.py` | the checks below |
+| `check_rules.py` | assertions for single parser/merge rules on synthetic input (`python3 scripts/tag/check_rules.py`) |
 
 ## How the parser works
 
@@ -43,6 +44,12 @@ there lists page warnings. `excluded_trains.csv` (written by `build.py`) lists e
   from the a/d marker of its line. A single time centred between a/d lines, in a row with no marker, or on a
   page whose markers contradict the time order is ambiguous. It is kept only when it is the first stop
   (departure) or a boxed last stop (arrival). Otherwise the stop is **omitted** and a warning is recorded.
+* A "Km.via <place>" km-column heading in a station row is not part of the station name. The place is the
+  word(s) printed below "Km.via" starting inside its width (18.pdf: "Km.via / Barauni" beside "Guwahati");
+  a multi-word place ("New Jalpaiguri", on one line or stacked) is taken whole, following words on a line
+  while the gap is at most 3 pt. If nothing is below, or nothing would be left for the station, the place
+  is the next word. TAG 2026 itself only prints "Km.via Barauni" (18.pdf); `check_rules.py` covers the
+  other layouts.
 * `...` (no halt / time not shown) is not emitted. Notes inside a cell ("Khajuraho Arr. 12.55",
   "DLI 09.50 10.05") become stops at that station. Other cell text is dropped with a warning.
 * Boxed times mark where a train starts or ends inside a table. Page footnotes (`*`, `**`, `#`, `†`, ...) are attached
@@ -63,6 +70,15 @@ there lists page warnings. `excluded_trains.csv` (written by `build.py`) lists e
    offset, and the majority wins. A junction where one table has only the arrival and the other only the
    departure anchors only when the halt is 3 h or less. If tables print different times for a stop, that
    time is set to null with a warning.
+   Two tables that print the same times at differently named stops describe one halt:
+   * With an uncoded name (or the same code), the coded name is kept ("Udaipur" / "Udaipur City"). This also
+     holds when each table prints a single, equal time and exactly one of them has a clear a/d role; that
+     role is kept.
+   * With two different codes and the same arrival *and* departure (Lucknow LKO / Lucknow Jn. LJN, Ernakulam
+     Town / Jn., Kanpur / Govindpuri), the train cannot be at both, and which one it uses is not certain.
+     The stop is omitted with a warning.
+   * Two different codes with only a single equal time (Satna / Prayagraj as the terminal of 11801) stay
+     undetermined, and the train is excluded.
 3. Stops are ordered by elapsed time. Each stop's printed clock time must equal the origin time plus the elapsed
    minutes, and consecutive stops must be no more than 12 h apart. No station may appear twice. Any
    violation **excludes the train**.
@@ -122,12 +138,18 @@ single entry with no `valid`.
   equivalence group, the group's current code is used. Same-place stations on different lines (Dadar DR Central /
   DDR Western) are then placed by line: with coded stops on both sides, a candidate is chosen when at least 3
   datameet 2016 routes serve it between those two stops and none serves any other candidate there, every other
-  candidate is served by some 2016 route, no other candidate sits at the same point (Phalodi PLC/PLCJ: one station,
-  two codes), and known zones agree. Otherwise code=null. Of 324 ambiguous stops: 40 resolved by geography (all
-  Rajendranagar -> RJPB), 7 by equivalence (New Jalpaiguri Jn. -> NJP, Velankanni -> VLNK), 124 by line (Dadar DR 100,
-  DDR 2, Lal Kuan LKU 13, Alipurduar APDJ 5, Aishbagh ASH 3, Govindpuri GOY 1; 116/116 verifiable against eRail routes
-  correct, 8 terminal-adjacent Dadar stops not on eRail's current route), 153 left null (Sabarmati SBI/SBT, terminal
-  Dadar, Kalol KLL/KLLF, Dhaulpur DHO/DHOA, ...).
+  candidate is served by some 2016 route, no other served candidate sits at the same point (Phalodi PLC/PLCJ: one
+  station, two codes), and known zones agree. An other candidate that no 2016 route serves is allowed only when it
+  stands within 100 m of the chosen one (Kalol KLL/KLLF, Dhaulpur DHO/DHOA, Jetalsar JLR/JLRF): the 2016 routes list
+  every station they pass, so every 2016 train through that point used the chosen code. Otherwise code=null. Of 328
+  ambiguous stops: 40 resolved by geography (all Rajendranagar -> RJPB), 7 by equivalence (New Jalpaiguri Jn. -> NJP,
+  Velankanni -> VLNK), 150 by line (Dadar DR 100, DDR 2, Lal Kuan LKU 13, Dhaulpur DHO 11, Jetalsar JLR 8, Kalol KLL 7,
+  Alipurduar APDJ 5, Aishbagh ASH 3, Govindpuri GOY 1; 142/142 verifiable against eRail routes correct, 8
+  terminal-adjacent Dadar stops not on eRail's current route), 131 left null (Sabarmati, terminal Dadar, Kalol next to
+  an uncoded Sabarmati or between Gandhinagar and Mahesana, a line fewer than 3 2016 routes serve, Phalodi PLC/PLCJ,
+  ...). Sabarmati: datameet 2016 lists SBI and SBT as
+  consecutive points on the same routes, and current routes use SBIB (Mahesana line) and SBT (Chandlodiya line), so
+  neither 2016 code can be chosen from TAG and datameet alone.
 * **Station equivalences** (`data/station_equivalences.json`, built by `build_equivalences.py`). TAG codes are not
   rewritten; consumers canonicalise with the table. There are three candidate sources:
   * TAG-vs-eRail route position with identical times.
@@ -165,9 +187,14 @@ single entry with no `valid`.
   footnotes silent on halts/route) and the Days cell splits into one group per number. The split days are used only
   when a number's own column elsewhere confirms them; TAG once prints them in the opposite order ("15630/15930" over
   "M / F"), so unconfirmed days are null. The name is left empty unless another table names the train.
-* Excluded trains (see `excluded_trains.csv`, 197 in total): 18 share a column with another number (e.g. `12330/12380`);
-  114 have route pieces whose order can't be determined (no shared station, no unique placement from TAG's linkage, or two stations with the same time);
-  61 have inconsistent tables (times going backwards or jumping, or tables disagreeing on the route); 4 have fewer than 2 usable stops.
+  A From/To Table cell with one part per number ("63/22" over 11055/11059) is split the same way, but its
+  order is never taken on trust. Each part goes to a number whose own columns appear in that table. If exactly
+  one one-to-one assignment fits, it is used. Otherwise a number gets the one part that fits it, or no
+  linkage at all (e.g. "66A/74A" over 15630/15930 gives 15930 66A and 15630 nothing). A cell without "/"
+  applies to every number.
+* Excluded trains (see `excluded_trains.csv`, 188 in total): 18 share a column with another number (e.g. `12330/12380`);
+  106 have route pieces whose order can't be determined (no shared station, no unique placement from TAG's linkage, or two stations with the same time);
+  60 have inconsistent tables (times going backwards or jumping, or tables disagreeing on the route); 4 have fewer than 2 usable stops.
   Published trains that still miss a piece say so in a "stop(s) omitted" warning.
 * `data_as_of` is "2026": the PDFs print no single validity date, only per-train "w.e.f." footnotes, so only the year is stated.
 

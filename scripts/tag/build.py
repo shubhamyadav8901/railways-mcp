@@ -199,7 +199,33 @@ SHARED_NOTE_DIFF = re.compile(r"(?i)halt|stop|via|only|extend|terminat|terminal|
                               r"|cancel|divert|reschedul|change|day")
 
 
-def split_shared(raw: dict, own_days: dict):
+def split_table_cell(text: str, nums: list[str], own_tables: dict) -> dict:
+    """A From/To Table cell of a column headed by several numbers -> {number: cell text}.
+    A cell without "/" applies to every number. "63/22" over "11055/11059" names one table per
+    number, but TAG's order is not reliable (see split_shared), so each part is matched to a
+    number by the tables the number's own columns appear in (own_tables: number -> PDF numbers):
+    when exactly one one-to-one assignment fits, it is used; otherwise a number gets the one part
+    whose table carries it, or nothing ("") when no part or several parts do."""
+    parts = [p.strip() for p in text.split("/")]
+    if len(parts) == 1:
+        return {n: text for n in nums}
+
+    def fits(n, p):
+        return bool(_refs(p)) and _refs(p) <= own_tables.get(n, set())
+    if len(parts) == len(nums):
+        import itertools
+        perms = [pm for pm in itertools.permutations(parts) if all(fits(n, p) for n, p in zip(nums, pm))]
+        if len(perms) == 1:
+            return dict(zip(nums, perms[0]))
+    out = {}
+    for n in nums:
+        c = [p for p in parts if fits(n, p)]
+        out[n] = c[0] if len(c) == 1 else ""
+    claimed = [p for p in out.values() if p]
+    return {n: p if claimed.count(p) == 1 else "" for n, p in out.items()}   # a part two numbers claim: neither
+
+
+def split_shared(raw: dict, own_days: dict, own_tables: dict | None = None):
     """A column headed by several numbers ("12888/12896") prints timings that TAG gives for each of
     them, with the running days of each number separated by "/" in the same order ("Su/Th").
     One column per number is returned only when nothing in the column is specific to one number:
@@ -211,7 +237,8 @@ def split_shared(raw: dict, own_days: dict):
     tables (own_days: number -> set of parsed day tuples) must print the same days. The split
     days are used only when all numbers but one are confirmed that way and none is contradicted
     (TAG prints "15630/15930" over "M / F" while 15930's own column says M); otherwise each
-    number's days are withheld (null) and only the times are used."""
+    number's days are withheld (null) and only the times are used.
+    From/To Table cells are split per number by split_table_cell."""
     shared = raw.get("shared")
     if not shared:
         return None, "number cell not readable"
@@ -244,10 +271,14 @@ def split_shared(raw: dict, own_days: dict):
         withheld = f"running days withheld: which group of the Days cell {raw['days_raw']!r} of {others} ({raw['pdf']} p{raw['page']}) belongs to which number is not confirmed by own TAG columns"
     else:
         withheld = None
+    nums = [x[0] for x in shared]
+    from_t = split_table_cell(raw["from_table"], nums, own_tables or {})
+    to_t = split_table_cell(raw["to_table"], nums, own_tables or {})
     out = []
     for k, (num, marks) in enumerate(shared):
         mk = [x for x in marks.split(",") if x]
         out.append({**raw, "bad": False, "number": num, "marker": ",".join(mk), "name": "", "shared": None,
+                    "from_table": from_t[num], "to_table": to_t[num],
                     "days_raw": "" if withheld else days[k], "days_withheld": withheld,
                     "arr_days_raw": "" if withheld or len(arr_days) != n else arr_days[k],
                     "footnotes": {x: raw["footnotes"][x] for x in mk},
@@ -363,6 +394,16 @@ def _components(segs):
     return comps
 
 
+def _same_single_time(p, m):
+    """Two stops from different tables that each print one time, the same one, where exactly one
+    of them has no clear arrival/departure role and their codes do not conflict."""
+    def single(x):
+        return (x["arr"] or x["dep"]) if bool(x["arr"]) != bool(x["dep"]) else None
+    return (single(p) is not None and single(p) == single(m)
+            and bool(p["flags"] & SINGLE_AMBIG) != bool(m["flags"] & SINGLE_AMBIG)
+            and not (p["code"] and m["code"] and p["code"] != m["code"]))
+
+
 def _merge_component(comp, off, warns):
     inst = []
     for s in comp:
@@ -408,9 +449,29 @@ def _merge_component(comp, off, warns):
     out = []
     for m in merged:
         p = out[-1] if out else None
-        if p and p["arr"] == m["arr"] and p["dep"] == m["dep"] and \
-                not ({x["seg"].sid for x in p["inst"]} & {x["seg"].sid for x in m["inst"]}):
+        disjoint = p and not ({x["seg"].sid for x in p["inst"]} & {x["seg"].sid for x in m["inst"]})
+        if disjoint and _same_single_time(p, m):
+            # one table prints the time as an arrival, the other with no clear role (e.g. the boxed
+            # terminal "Udaipur City" a 08.05 / "Udaipur" 08.05): the explicit role is used
+            explicit = p if not (p["flags"] & SINGLE_AMBIG) else m
+            p["arr"], p["dep"], m["arr"], m["dep"] = explicit["arr"], explicit["dep"], explicit["arr"], explicit["dep"]
+            for x in (p, m):
+                x["flags"] = x["flags"] - SINGLE_AMBIG
+        if disjoint and p["arr"] == m["arr"] and p["dep"] == m["dep"]:
+            if p.get("conflict"):   # a further name for an omitted halt: omitted with it
+                p["inst"] = p["inst"] + m["inst"]
+                continue
             if p["code"] and m["code"] and p["code"] != m["code"]:
+                if p["arr"] and p["dep"]:
+                    # the same arrival AND departure at two different stations in two tables: one halt
+                    # that the tables name differently (Lucknow LKO / Lucknow Jn. LJN). A train cannot
+                    # be at both, and which one it uses is not certain, so the halt is omitted.
+                    warns.append(f"{p['name']} / {m['name']}: TAG tables print the same arrival and departure "
+                                 f"({p['arr'][0]}/{p['dep'][0]}) at these two different stations; which one the "
+                                 f"train uses is not certain, so the stop is omitted")
+                    p["conflict"] = True
+                    p["inst"] = p["inst"] + m["inst"]
+                    continue
                 out.append(m)
                 continue
             keep, other = (p, m) if (p["code"] or not m["code"]) else (m, p)
@@ -420,7 +481,7 @@ def _merge_component(comp, off, warns):
             out[-1] = keep
             continue
         out.append(m)
-    return out
+    return [m for m in out if not m.get("conflict")]
 
 
 def _ordered(merged):
@@ -584,7 +645,7 @@ def resolve_ambiguous(merged, matcher, warns, stats):
         # count: a terminal Dadar is left null, as such trains are often re-terminated). Each candidate is
         # counted in the datameet 2016 routes that serve it between those neighbours; one candidate needs
         # >= LINE_MIN routes and every other none, and every other must itself be served by some 2016
-        # route (a code absent from the 2016 routes says nothing about its line). When the zones of the
+        # route (a code absent from the 2016 routes says nothing about its line) or stand at the winner's point. When the zones of the
         # winner and both neighbours are known, the winner's must equal at least one neighbour's.
         pc = next((c for j, c in reversed(orig) if j < i), None)
         nc = next((c for j, c in orig if j > i), None)
@@ -598,8 +659,16 @@ def resolve_ambiguous(merged, matcher, warns, stats):
         # two codes at one point that 2016 routes both serve are one station under two codes (Phalodi
         # PLC/PLCJ): the 2016 route code need not be today's, so no choice is made
         wxy = matcher.coords(win)
-        twin = any(wxy and matcher.coords(c) and _km(wxy, matcher.coords(c)) < 0.05 for _, c in sup[1:])
-        served = all(matcher.route_pos.get(c) for _, c in sup[1:])
+
+        def at_win(c, km):
+            xy = matcher.coords(c)
+            return bool(wxy and xy and _km(wxy, xy) < km)
+        others = [c for _, c in sup[1:]]
+        twin = any(matcher.route_pos.get(c) and at_win(c, 0.05) for c in others)
+        # an other candidate that no 2016 route serves says nothing about its line, unless it stands at the
+        # winner's own point (< 100 m, e.g. Kalol KLL/KLLF, Dhaulpur DHO/DHOA): the 2016 routes list every
+        # station they pass, so every 2016 train through that point was listed under the winner's code
+        served = all(matcher.route_pos.get(c) or at_win(c, 0.1) for c in others)
         if sup[0][0] >= LINE_MIN and all(x[0] == 0 for x in sup[1:]) and zone_ok and not twin and served:
             m["code"] = win
             stats["ambiguous_resolved_line"] += 1
@@ -922,11 +991,14 @@ def main():
     page_warnings = []
     sid = 0
     own_days = defaultdict(set)           # number -> running days printed in its own (unshared) columns
+    own_tables = defaultdict(set)         # number -> PDFs (tables) holding one of its own (unshared) columns
     for data in parsed.values():
         for raw in data["segments"]:
             d = None if raw["bad"] else parse_days(raw["days_raw"])[0]
             if d is not None:
                 own_days[raw["number"]].add(tuple(d))
+            if not raw["bad"]:
+                own_tables[raw["number"]].add(int(raw["pdf"].split(".")[0]))
 
     def add_column(raw):
         nonlocal sid
@@ -948,7 +1020,7 @@ def main():
                 monsoon_unreadable.update(w.split("trains:")[1].split())
         for raw in data["segments"]:
             if raw["bad"]:
-                parts, why = split_shared(raw, own_days)
+                parts, why = split_shared(raw, own_days, own_tables)
                 if parts is None:
                     for n in re.findall(r"\d{5}", raw["number"]):
                         excluded.setdefault(n, f"shares a column with another train number ({raw['number']!r}, {pdf} p{raw['page']}): {why}")
