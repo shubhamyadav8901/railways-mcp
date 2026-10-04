@@ -29,6 +29,7 @@ there lists page warnings. `excluded_trains.csv` (written by `build.py`) lists e
 | `build_equivalences.py` | verified same-station code groups -> `data/station_equivalences.json` |
 | `build.py` | split/merge segments per train, days, classes, output |
 | `validate.py` | the checks below |
+| `check_rules.py` | assertions for single parser/merge rules on synthetic input (`python3 scripts/tag/check_rules.py`) |
 
 ## How the parser works
 
@@ -43,6 +44,12 @@ there lists page warnings. `excluded_trains.csv` (written by `build.py`) lists e
   from the a/d marker of its line. A single time centred between a/d lines, in a row with no marker, or on a
   page whose markers contradict the time order is ambiguous. It is kept only when it is the first stop
   (departure) or a boxed last stop (arrival). Otherwise the stop is **omitted** and a warning is recorded.
+* A "Km.via <place>" km-column heading in a station row is not part of the station name. The place is the
+  word(s) printed below "Km.via" starting inside its width (18.pdf: "Km.via / Barauni" beside "Guwahati");
+  a multi-word place ("New Jalpaiguri", on one line or stacked) is taken whole, following words on a line
+  while the gap is at most 3 pt. If nothing is below, or nothing would be left for the station, the place
+  is the next word. TAG 2026 itself only prints "Km.via Barauni" (18.pdf); `check_rules.py` covers the
+  other layouts.
 * `...` (no halt / time not shown) is not emitted. Notes inside a cell ("Khajuraho Arr. 12.55",
   "DLI 09.50 10.05") become stops at that station. Other cell text is dropped with a warning.
 * Boxed times mark where a train starts or ends inside a table. Page footnotes (`*`, `**`, `#`, `†`, ...) are attached

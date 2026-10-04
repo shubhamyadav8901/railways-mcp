@@ -7,6 +7,9 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 ### Added
 - **Prebuilt Docker image** on GitHub Container Registry (`ghcr.io/shubhamyadav8901/railways-mcp`, amd64 and arm64), published for each release by a new workflow. The README shows how to run it without cloning.
 
+### Fixed
+- **Timetable parser:** a "Km. via …" km-column heading whose place has two or more words (e.g. "New Jalpaiguri") is now removed whole, not only its first word. TAG 2026 prints only "Km.via Barauni", so the 2026 data is unchanged. `scripts/tag/check_rules.py` adds checks for single parser rules.
+
 ## [0.2.0] - 2026-10-04
 
 ### Fixed
