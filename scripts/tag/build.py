@@ -393,6 +393,16 @@ def _components(segs):
     return comps
 
 
+def _same_single_time(p, m):
+    """Two stops from different tables that each print one time, the same one, where exactly one
+    of them has no clear arrival/departure role and their codes do not conflict."""
+    def single(x):
+        return (x["arr"] or x["dep"]) if bool(x["arr"]) != bool(x["dep"]) else None
+    return (single(p) is not None and single(p) == single(m)
+            and bool(p["flags"] & SINGLE_AMBIG) != bool(m["flags"] & SINGLE_AMBIG)
+            and not (p["code"] and m["code"] and p["code"] != m["code"]))
+
+
 def _merge_component(comp, off, warns):
     inst = []
     for s in comp:
@@ -438,9 +448,26 @@ def _merge_component(comp, off, warns):
     out = []
     for m in merged:
         p = out[-1] if out else None
-        if p and p["arr"] == m["arr"] and p["dep"] == m["dep"] and \
-                not ({x["seg"].sid for x in p["inst"]} & {x["seg"].sid for x in m["inst"]}):
+        disjoint = p and not ({x["seg"].sid for x in p["inst"]} & {x["seg"].sid for x in m["inst"]})
+        if disjoint and _same_single_time(p, m):
+            # one table prints the time as an arrival, the other with no clear role (e.g. the boxed
+            # terminal "Udaipur City" a 08.05 / "Udaipur" 08.05): the explicit role is used
+            explicit = p if not (p["flags"] & SINGLE_AMBIG) else m
+            p["arr"], p["dep"], m["arr"], m["dep"] = explicit["arr"], explicit["dep"], explicit["arr"], explicit["dep"]
+            for x in (p, m):
+                x["flags"] = x["flags"] - SINGLE_AMBIG
+        if disjoint and p["arr"] == m["arr"] and p["dep"] == m["dep"]:
             if p["code"] and m["code"] and p["code"] != m["code"]:
+                if p["arr"] and p["dep"] and not p.get("conflict"):
+                    # the same arrival AND departure at two different stations in two tables: one halt
+                    # that the tables name differently (Lucknow LKO / Lucknow Jn. LJN). A train cannot
+                    # be at both, and which one it uses is not certain, so the halt is omitted.
+                    warns.append(f"{p['name']} / {m['name']}: TAG tables print the same arrival and departure "
+                                 f"({p['arr'][0]}/{p['dep'][0]}) at these two different stations; which one the "
+                                 f"train uses is not certain, so the stop is omitted")
+                    p["conflict"] = True
+                    p["inst"] = p["inst"] + m["inst"]
+                    continue
                 out.append(m)
                 continue
             keep, other = (p, m) if (p["code"] or not m["code"]) else (m, p)
@@ -450,7 +477,7 @@ def _merge_component(comp, off, warns):
             out[-1] = keep
             continue
         out.append(m)
-    return out
+    return [m for m in out if not m.get("conflict")]
 
 
 def _ordered(merged):

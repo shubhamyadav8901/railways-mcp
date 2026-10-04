@@ -63,7 +63,60 @@ def check_split_table_cell():
     assert split("63/22", ["1", "2"], own) == {"1": "", "2": ""}
 
 
-CHECKS = [check_km_via_heading, check_split_table_cell]
+def _seg(sid, stops):
+    """A minimal build.Seg stand-in: stops = [(code, name, arr, dep, flags, boxed)], times as HH:MM."""
+    from types import SimpleNamespace
+    import build
+    out, prev, rel = [], None, 0
+    for i, (code, name, arr, dep, flags, boxed) in enumerate(stops):
+        ev = {}
+        for kind, t in (("arr", arr), ("dep", dep)):
+            if t:
+                m = build.mins(t)
+                rel += 0 if prev is None else (m - prev) % 1440
+                prev = m
+                ev[kind] = rel
+        out.append({"key": code or "N:" + name, "code": code, "cands": [], "name": name, "arr": arr, "dep": dep,
+                    "km": None, "flags": list(flags), "boxed": boxed, "rel": ev, "i": i})
+    return SimpleNamespace(sid=sid, stops=out, keys=[s["key"] for s in out], raw={})
+
+
+def check_same_halt_two_names():
+    import build
+    # Lucknow (LKO) in one table, Lucknow Jn. (LJN) in another, same arrival and departure: one halt
+    # named differently; which station is not certain, so it is omitted (12572, 15706, 22199)
+    a = _seg(1, [("CNB", "Kanpur", "00:50", "00:55", (), False), ("LKO", "Lucknow", "02:30", "02:40", (), False),
+                 ("GD", "Gonda", "05:00", "05:05", (), False)])
+    b = _seg(2, [("LJN", "Lucknow Jn.", "02:30", "02:40", (), False), ("GD", "Gonda", "05:00", "05:05", (), False),
+                 ("GKP", "Gorakhpur", "09:15", None, ("single_centered",), True)])
+    off = {1: 0, 2: 100}   # b's Lucknow is 100 min after a's Kanpur arrival
+    warns = []
+    m = build._merge_component([a, b], off, warns)
+    assert [x["code"] for x in m] == ["CNB", "GD", "GKP"], [x["code"] for x in m]
+    assert build._ordered(m) is None
+    assert any("which one the train uses is not certain" in w for w in warns)
+    # two different stations with the same SINGLE time stay unresolved (Satna / Prayagraj): excluded
+    a = _seg(1, [("MKP", "Manikpur", "15:20", "15:25", (), False), ("STA", "Satna", None, "18:30", ("single_by_marker",), False)])
+    b = _seg(2, [("MKP", "Manikpur", "15:20", "15:25", (), False), ("PRYJ", "Prayagraj", None, "18:30", ("single_centered",), True)])
+    m = build._merge_component([a, b], {1: 0, 2: 0}, [])
+    assert "undetermined" in build._ordered(m)
+
+
+def check_same_single_time_explicit_role():
+    import build
+    # boxed terminal "Udaipur City" a 08.05 in one table, "Udaipur" 08.05 with no clear role in another
+    # (19670): one stop, the coded name and the explicit arrival are kept
+    a = _seg(1, [("KOTA", "Kota", "01:20", "01:40", (), False), ("UDZ", "Udaipur City", "08:05", None, ("single_a_only",), True)])
+    b = _seg(2, [("KOTA", "Kota", "01:20", "01:40", (), False), ("BUDI", "Bundi", None, "02:15", ("single_d_only",), False),
+                 (None, "Udaipur", None, "08:05", ("single_centered",), True)])
+    m = build._merge_component([a, b], {1: 0, 2: 0}, [])
+    assert build._ordered(m) is None
+    last = m[-1]
+    assert (last["code"], last["arr"][0], last["dep"]) == ("UDZ", "08:05", None)
+    assert not (last["flags"] & build.SINGLE_AMBIG)
+
+
+CHECKS = [check_km_via_heading, check_split_table_cell, check_same_halt_two_names, check_same_single_time_explicit_role]
 
 if __name__ == "__main__":
     for c in CHECKS:

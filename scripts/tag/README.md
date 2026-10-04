@@ -70,6 +70,15 @@ there lists page warnings. `excluded_trains.csv` (written by `build.py`) lists e
    offset, and the majority wins. A junction where one table has only the arrival and the other only the
    departure anchors only when the halt is 3 h or less. If tables print different times for a stop, that
    time is set to null with a warning.
+   Two tables that print the same times at differently named stops describe one halt:
+   * With an uncoded name (or the same code), the coded name is kept ("Udaipur" / "Udaipur City"). This also
+     holds when each table prints a single, equal time and exactly one of them has a clear a/d role; that
+     role is kept.
+   * With two different codes and the same arrival *and* departure (Lucknow LKO / Lucknow Jn. LJN, Ernakulam
+     Town / Jn., Kanpur / Govindpuri), the train cannot be at both, and which one it uses is not certain.
+     The stop is omitted with a warning.
+   * Two different codes with only a single equal time (Satna / Prayagraj as the terminal of 11801) stay
+     undetermined, and the train is excluded.
 3. Stops are ordered by elapsed time. Each stop's printed clock time must equal the origin time plus the elapsed
    minutes, and consecutive stops must be no more than 12 h apart. No station may appear twice. Any
    violation **excludes the train**.
@@ -177,9 +186,9 @@ single entry with no `valid`.
   one one-to-one assignment fits, it is used. Otherwise a number gets the one part that fits it, or no
   linkage at all (e.g. "66A/74A" over 15630/15930 gives 15930 66A and 15630 nothing). A cell without "/"
   applies to every number.
-* Excluded trains (see `excluded_trains.csv`, 197 in total): 18 share a column with another number (e.g. `12330/12380`);
-  114 have route pieces whose order can't be determined (no shared station, no unique placement from TAG's linkage, or two stations with the same time);
-  61 have inconsistent tables (times going backwards or jumping, or tables disagreeing on the route); 4 have fewer than 2 usable stops.
+* Excluded trains (see `excluded_trains.csv`, 188 in total): 18 share a column with another number (e.g. `12330/12380`);
+  106 have route pieces whose order can't be determined (no shared station, no unique placement from TAG's linkage, or two stations with the same time);
+  60 have inconsistent tables (times going backwards or jumping, or tables disagreeing on the route); 4 have fewer than 2 usable stops.
   Published trains that still miss a piece say so in a "stop(s) omitted" warning.
 * `data_as_of` is "2026": the PDFs print no single validity date, only per-train "w.e.f." footnotes, so only the year is stated.
 

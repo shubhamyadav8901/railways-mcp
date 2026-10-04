@@ -10,6 +10,7 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 ### Fixed
 - **Timetable parser:** a "Km. via …" km-column heading whose place has two or more words (e.g. "New Jalpaiguri") is now removed whole, not only its first word. TAG 2026 prints only "Km.via Barauni", so the 2026 data is unchanged. `scripts/tag/check_rules.py` adds checks for single parser rules.
 - **Shared columns ("N1/N2"):** a From/To Table cell such as "63/22" is split per train number. Each part goes to the number whose own columns appear in that table, never just by printed order. Previously every number got the whole cell. Published trains are unchanged.
+- **9 more trains and one regular seasonal variant published** (exclusions 197 → 188), which were excluded as "order undetermined": 12572, 14807, 15706, 17421, 17422, 19670, 22199, 22583, 22901, and 16586's regular timings. When two tables print the same arrival and departure at two different stations (Lucknow / Lucknow Jn., Ernakulam Town / Jn., Kanpur / Govindpuri, Bildi / Bhildi), that halt is omitted with a warning, because the train cannot be at both and which one it uses is not certain. A single time printed with a clear a/d role in one table and none in the other ("Udaipur City" a 08.05 / "Udaipur" 08.05) is one stop. In all 10 entries every coded stop is on eRail's route in the same order, and day numbers and the running days TAG gives match eRail.
 
 ## [0.2.0] - 2026-10-04
 
