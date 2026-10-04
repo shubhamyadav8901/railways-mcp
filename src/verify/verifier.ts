@@ -3,6 +3,7 @@ import type { Leg, Station, Stop, TrainSchedule } from "../core/types.js";
 import {
   BUDGET_REASON,
   Comparison,
+  type ComparisonOptions,
   offSeasonReason,
   countsAsEvidence,
   sameSet,
@@ -28,6 +29,8 @@ export interface VerifierOptions {
   codes?: StationCodes;
   /** Travel date (YYYY-MM-DD) for sources with seasonal timings; default today in IST. */
   date?: string;
+  /** The presented source is the current operational data (PRIMARY_SOURCE=confirmtkt); see ComparisonOptions. */
+  presentOperational?: boolean;
 }
 
 export interface View<T> {
@@ -93,11 +96,14 @@ export class Verifier {
   private readonly infoById: Map<string, ProviderInfo>;
   private readonly codes: StationCodes;
   private readonly date: string | undefined;
+  /** Options for every comparison this verifier makes (also passed to mergeTrainsBetween). */
+  readonly comparisonOptions: ComparisonOptions;
 
   constructor(
     private readonly registry: ProviderRegistry,
     opts: VerifierOptions,
   ) {
+    this.comparisonOptions = { presentOperational: opts.presentOperational ?? false };
     this.codes = opts.codes ?? new StationCodes();
     this.date = opts.date;
     this.deadline = Date.now() + opts.budgetMs;
@@ -210,7 +216,7 @@ export class Verifier {
   async verifySchedule(primary: View<TrainSchedule>): Promise<{ verification: Verification; stops: Array<StopVerification | null> }> {
     const { all, unavailable } = await this.withOthers(primary);
     const sources = all.map((v) => v.source);
-    const c = new Comparison(sources, unavailable, this.notCountedFor(sources, "timetable"), this.upstreamOf);
+    const c = new Comparison(sources, unavailable, this.notCountedFor(sources, "timetable"), this.upstreamOf, this.comparisonOptions);
     const by = <T>(f: (s: TrainSchedule) => T) => Object.fromEntries(all.map((v) => [v.source, f(v.value)]));
     c.field(
       "running_days",
@@ -255,7 +261,7 @@ export class Verifier {
   async verifyStop(primary: View<TrainSchedule>, stopIndex: number): Promise<Verification> {
     const { all, unavailable } = await this.withOthers(primary);
     const sources = all.map((v) => v.source);
-    const c = new Comparison(sources, unavailable, this.notCountedFor(sources, "timetable"), this.upstreamOf);
+    const c = new Comparison(sources, unavailable, this.notCountedFor(sources, "timetable"), this.upstreamOf, this.comparisonOptions);
     // paths are relative to a station-board row ({ arrival, departure, ... })
     stopFields(c, all, primary.value.stops[stopIndex]!.station_code, visitIndex(primary.value.stops, stopIndex), []);
     c.field("running_days", Object.fromEntries(all.map((v) => [v.source, v.value.running_days])), { eq: sameSet });
@@ -283,7 +289,14 @@ export class Verifier {
       if (l) legs.push({ source: v.source, value: l });
       else notListedBy.push(v.source); // answered, but doesn't have this train halting at both stations in order
     }
-    return compareLegs(legs, unavailable, notListedBy, this.notCountedFor([primarySource], "timetable"), this.upstreamOf);
+    return compareLegs(
+      legs,
+      unavailable,
+      notListedBy,
+      this.notCountedFor([primarySource], "timetable"),
+      this.upstreamOf,
+      this.comparisonOptions,
+    );
   }
 
   /** One name search per station source (for search_stations). */
@@ -313,7 +326,7 @@ export class Verifier {
 
   private compareStation(all: View<Station>[], unavailable: Unavailable): Verification {
     const sources = all.map((v) => v.source);
-    const c = new Comparison(sources, unavailable, this.notCountedFor(sources, "station"), this.upstreamOf);
+    const c = new Comparison(sources, unavailable, this.notCountedFor(sources, "station"), this.upstreamOf, this.comparisonOptions);
     // Coordinates only count from sources that measured them; identical pairs are treated as copies.
     const seen = new Set<string>();
     const copied: string[] = [];
@@ -368,8 +381,9 @@ export function compareLegs(
   notListedBy: string[] = [],
   notCounted: string[] = [],
   upstreamOf: (source: string) => string = (s) => s,
+  options: ComparisonOptions = {},
 ): Verification {
-  const c = new Comparison([...legs.map((l) => l.source), ...notListedBy], unavailable, notCounted, upstreamOf);
+  const c = new Comparison([...legs.map((l) => l.source), ...notListedBy], unavailable, notCounted, upstreamOf, options);
   if (notListedBy.length) {
     c.contradiction("listed", {
       ...Object.fromEntries(legs.map((l) => [l.source, true])),
@@ -425,6 +439,7 @@ export function mergeTrainsBetween(
   notCounted: string[],
   today: string = todayInIndia(),
   upstreamOf: (source: string) => string = (s) => s,
+  options: ComparisonOptions = {},
 ): MergedLeg[] {
   const byTrain = new Map<string, Map<string, Leg[]>>();
   for (const a of answers) {
@@ -463,18 +478,23 @@ export function mergeTrainsBetween(
             notListedBy.push(b.source);
           }
         }
+        // Operational sources don't say which seasonal window their timings belong to; the matched
+        // timetable leg does (only the official timetable has seasonal variants), so seasonal notes
+        // and the off-season guard below still work when an operational source presents the row.
+        const window = leg.valid ?? views.find((v) => v.value.valid)?.value.valid;
+        const shown = window && !leg.valid ? { ...leg, valid: window } : leg;
         // seasonal timings for another part of the year can't be checked against sources showing today's timings
-        const offSeason = leg.valid && !inYearlyWindow(today, leg.valid);
+        const offSeason = window && !inYearlyWindow(today, window);
         out.push({
-          leg,
+          leg: shown,
           source: a.source,
           verification: offSeason
             ? {
                 status: "not_checked",
                 compared: [a.source],
-                unavailable: [{ source: "other sources", reason: offSeasonReason(leg.valid!, today) }],
+                unavailable: [{ source: "other sources", reason: offSeasonReason(window, today) }],
               }
-            : compareLegs(views, unavailable, notListedBy, notCounted, upstreamOf),
+            : compareLegs(views, unavailable, notListedBy, notCounted, upstreamOf, options),
         });
       });
     }

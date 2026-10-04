@@ -40,6 +40,33 @@ export function trainsCalling(ctx: AppContext, code: string): { count: number; d
   return t ? { count: t.trainsCalling(code), dataset: t.info.id } : null;
 }
 
+/**
+ * Fills a remote station's unknown (null) fields from the same station in the local timetables,
+ * official first, then the archive; known values are never overwritten. Coordinates are filled
+ * as a pair. `filled_from` names the dataset behind each filled field.
+ */
+export function fillGaps(ctx: AppContext, st: Station): Station & { filled_from?: Record<string, string> } {
+  const out: Station = { ...st };
+  const filled: Record<string, string> = {};
+  for (const t of ctx.timetables) {
+    // allStations is keyed by current codes; codes.same also matches renamed / recoded stations
+    const match = t.hasStation(st.code) ? t.allStations().find((x) => ctx.codes.same(x.code, st.code)) : undefined;
+    if (!match) continue;
+    for (const k of ["state", "zone"] as const) {
+      if (out[k] === null && match[k] !== null) {
+        out[k] = match[k];
+        filled[k] = t.info.id;
+      }
+    }
+    if ((out.lat === null || out.lon === null) && match.lat !== null && match.lon !== null) {
+      out.lat = match.lat;
+      out.lon = match.lon;
+      filled.lat = filled.lon = t.info.id;
+    }
+  }
+  return Object.keys(filled).length ? { ...out, filled_from: filled } : out;
+}
+
 export function haversineKm(aLat: number, aLon: number, bLat: number, bLon: number): number {
   const rad = Math.PI / 180;
   const dLat = (bLat - aLat) * rad;
@@ -65,8 +92,13 @@ export function registerStationTools(server: McpServer, ctx: AppContext): void {
       const res = await ctx.registry.first("stations", (p) => p.searchStations(query, limit), { isMiss: (r) => r.length === 0 });
       const verifier = newVerifier(ctx);
       const checks = verifier.verifyStations(res.data, res.source.provider, await verifier.stationSearchViews(query));
+      // verification compares each source's own values; gaps are filled only in what is shown
+      const shown =
+        ctx.primarySource === "confirmtkt" && !ctx.timetables.some((t) => t.info.id === res.source.provider)
+          ? res.data.map((s) => fillGaps(ctx, s))
+          : res.data;
       return ok({
-        stations: res.data.map((s, i) => ({
+        stations: shown.map((s, i) => ({
           ...s,
           trains_halting: trainsCalling(ctx, s.code)?.count ?? null,
           verification: compact(checks[i]!),

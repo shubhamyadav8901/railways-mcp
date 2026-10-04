@@ -18,8 +18,13 @@ const INSTRUCTIONS = `Indian Railways timetables, journey planning, punctuality 
 - get_data_sources lists which sources and capabilities are active. Errors have a code (NOT_FOUND, UNSUPPORTED, UPSTREAM_UNAVAILABLE, RATE_LIMITED, INVALID_INPUT) and mean the value is unknown.`;
 
 /** A fresh MCP server bound to shared app context (cheap: tools only close over ctx). */
+/** Added when PRIMARY_SOURCE=confirmtkt. */
+const OPERATIONAL_PRIMARY = `
+- Stations, trains between stations and train schedules are presented from ConfirmTkt (current operational data); the official timetable is a cross-check, and where it differs the printed value is listed under verification.conflicts[].majority.differs.`;
+
 export function createMcpServer(ctx: AppContext): McpServer {
-  const server = new McpServer(SERVER_INFO, { instructions: INSTRUCTIONS });
+  const instructions = ctx.primarySource === "confirmtkt" ? INSTRUCTIONS + OPERATIONAL_PRIMARY : INSTRUCTIONS;
+  const server = new McpServer(SERVER_INFO, { instructions });
   registerStationTools(server, ctx);
   registerTrainTools(server, ctx);
   registerJourneyTools(server, ctx);

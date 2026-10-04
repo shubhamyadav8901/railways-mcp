@@ -11,7 +11,7 @@ import {
   todayInIndia,
   weekdayOf,
 } from "../../core/time.js";
-import type { Leg, Station, Stop, TrainSchedule, TrainSummary } from "../../core/types.js";
+import type { Leg, Station, Stop, TrainSchedule, TrainSummary, YearlyWindow } from "../../core/types.js";
 import type {
   ProviderInfo,
   ScheduleSource,
@@ -203,6 +203,18 @@ export class LocalTimetableProvider implements StationSource, ScheduleSource, Tr
 
   scheduleOf(trainNumber: string, date: string = todayInIndia()): TrainSchedule | undefined {
     return this.schedules.get(trainNumber)?.find((v) => validOn(v, date));
+  }
+
+  /**
+   * Whether a train runs to the same timings on `date` as on `today` (the same seasonal variant, as
+   * scheduleOf selects it). Undefined when this timetable doesn't have the train. `valid` is the
+   * window of the variant in force on both dates, when it is seasonal.
+   */
+  sameTimingsAs(trainNumber: string, date: string, today: string = todayInIndia()): { same: boolean; valid?: YearlyWindow } | undefined {
+    if (!this.schedules.has(trainNumber)) return undefined;
+    const onDate = this.scheduleOf(trainNumber, date);
+    const same = onDate !== undefined && onDate === this.scheduleOf(trainNumber, today);
+    return same && onDate.valid ? { same, valid: onDate.valid } : { same };
   }
 
   /** This timetable as it applies on one date (seasonal variants resolved), for whole-network searches. */

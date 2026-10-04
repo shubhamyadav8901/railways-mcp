@@ -141,6 +141,7 @@ export function registerTrainTools(server: McpServer, ctx: AppContext): void {
         verifier.notCountedFor([primary], "timetable"),
         todayInIndia(),
         verifier.upstreamOf,
+        verifier.comparisonOptions,
       ).map((m) => {
         const { value: corrected, corrected: changed } = applyCorrections(m.leg, m.verification);
         if (changed && refreshLeg(corrected)) {

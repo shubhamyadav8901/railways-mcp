@@ -25,8 +25,12 @@ export function registerMetaTools(server: McpServer, ctx: AppContext): void {
         notes: info.notes ?? [],
       }));
       const timetables = ctx.timetables.map((t) => ({ id: t.info.id, trains: t.trainCount, stations: t.allStations().length }));
+      const capabilities = [...new Set(ctx.registry.allProviders().flatMap((p) => p.capabilities))];
       return ok({
         today_in_india: todayInIndia(),
+        primary_source: ctx.primarySource,
+        // the provider whose answer is presented first for each capability (the rest are cross-checks or fallbacks)
+        presented_first: Object.fromEntries(capabilities.map((c) => [c, ctx.registry.providers(c)[0]!.info.id])),
         providers,
         timetables,
         disabled: ctx.disabled,

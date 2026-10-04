@@ -266,3 +266,115 @@ describe("upstream failures", () => {
     expect(f).not.toHaveBeenCalled();
   });
 });
+
+describe("getSchedule", () => {
+  const bySchedule = (url: string): Reply => {
+    if (url.includes("trainNo=19999")) return { body: fixture("schedule-19999.json") };
+    if (url.includes("trainNo=")) return { body: fixture("schedule-not-found.json") };
+    throw new Error(`unexpected url ${url}`);
+  };
+  const seasonal = (same: boolean, valid?: { from: string; to: string }) =>
+    new ConfirmTktProvider({
+      clientId: "test-client",
+      apiKey: "test-key",
+      minIntervalMs: 0,
+      retries: 0,
+      cache: new TtlCache<string>(),
+      timingsAsToday: () => ({ same, ...(valid ? { valid } : {}) }),
+    });
+
+  it("declares the schedule capability and sends the client headers", async () => {
+    const f = stubFetch(bySchedule);
+    expect(provider().info.capabilities).toContain("schedule");
+    await provider().getSchedule("19999");
+    const [url, init] = f.mock.calls[0]!;
+    expect(String(url)).toBe("https://cttrainsapi.confirmtkt.com/api/v1/trains/schedule?trainNo=19999");
+    expect((init?.headers as Record<string, string>).apikey).toBe("test-key");
+  });
+
+  it("parses halts, journey days across midnight, halts and running days", async () => {
+    stubFetch(bySchedule);
+    const s = await provider().getSchedule("19999");
+    expect(s).toMatchObject({
+      number: "19999",
+      name: "SYNTHETIC NIGHT EXP",
+      origin_code: "AAA",
+      destination_code: "DDD",
+      running_days: ["MON", "WED", "FRI"],
+      classes: ["2A", "3A", "SL"],
+      distance_km: 602,
+      data_warnings: [],
+    });
+    expect(s.valid).toBeUndefined();
+    expect(s.stops.map((x) => x.station_code)).toEqual(["AAA", "BBB", "CCC", "DDD"]); // intermediateStations ignored
+    expect(s.stops.every((x) => x.halts)).toBe(true);
+    const [a, b, c, d] = s.stops;
+    expect(a).toMatchObject({ arrival: null, departure: { time: "22:00", day: 1 }, halt_minutes: null, distance_km: 0 });
+    // arrives 23:50 on day 1, leaves 00:05 on day 2
+    expect(b).toMatchObject({
+      arrival: { time: "23:50", day: 1 },
+      departure: { time: "00:05", day: 2 },
+      halt_minutes: 15,
+      distance_km: 120.5,
+    });
+    expect(c).toMatchObject({ arrival: { time: "05:30", day: 2 }, departure: { time: "05:40", day: 2 }, halt_minutes: 10 });
+    expect(d).toMatchObject({ arrival: { time: "09:15", day: 2 }, departure: null, halt_minutes: null, distance_km: 602 });
+  });
+
+  it("an error message or an empty schedule is NOT_FOUND; a bad shape is UPSTREAM_UNAVAILABLE", async () => {
+    stubFetch(bySchedule);
+    expect((await railError(provider().getSchedule("10000"))).code).toBe("NOT_FOUND");
+    stubFetch(() => ({ body: JSON.stringify({ TrainNo: null, ErrorMsg: "Train not found", Schedule: [] }) }));
+    expect((await railError(provider().getSchedule("10000"))).code).toBe("NOT_FOUND");
+    stubFetch(() => ({ body: JSON.stringify({ TrainNo: "10000", ErrorMsg: "", Schedule: [] }) }));
+    expect((await railError(provider().getSchedule("10000"))).code).toBe("NOT_FOUND");
+    stubFetch(() => ({ body: JSON.stringify({ TrainNo: "10000", ErrorMsg: "Service temporarily down" }) }));
+    expect((await railError(provider().getSchedule("10000"))).code).toBe("UPSTREAM_UNAVAILABLE");
+    stubFetch(() => ({ body: JSON.stringify({ TrainNo: "10000", Schedule: [{ StationCode: "AAA", Day: "x" }] }) }));
+    expect((await railError(provider().getSchedule("10000"))).code).toBe("UPSTREAM_UNAVAILABLE");
+    stubFetch(() => ({ body: fixture("schedule-19999.json") }));
+    expect((await railError(provider().getSchedule("10000"))).code).toBe("UPSTREAM_UNAVAILABLE"); // another train's schedule
+  });
+
+  it("a malformed train number is UNSUPPORTED (not INVALID_INPUT, which would stop the chain)", async () => {
+    const f = stubFetch(bySchedule);
+    expect((await railError(provider().getSchedule("1234A"))).code).toBe("UNSUPPORTED");
+    expect(f).not.toHaveBeenCalled();
+  });
+
+  it("is UNSUPPORTED, without calling upstream, for a date with other seasonal timings than today", async () => {
+    const f = stubFetch(bySchedule);
+    const e = await railError(seasonal(false).getSchedule("19999", "2026-12-01"));
+    expect(e.code).toBe("UNSUPPORTED");
+    expect(e.message).toMatch(/timings in force today/);
+    expect(f).not.toHaveBeenCalled();
+  });
+
+  it("carries the official seasonal window when today's timings are that variant", async () => {
+    stubFetch(bySchedule);
+    expect((await seasonal(true, { from: "06-10", to: "10-31" }).getSchedule("19999", "2026-10-20")).valid).toEqual({
+      from: "06-10",
+      to: "10-31",
+    });
+  });
+
+  it("searchTrains is UNSUPPORTED", async () => {
+    expect((await railError(provider().searchTrains("rajdhani", 5))).code).toBe("UNSUPPORTED");
+  });
+
+  it("trainsBetween leaves trains with other seasonal timings on the date to the timetable", async () => {
+    stubFetch(byDate);
+    const p = new ConfirmTktProvider({
+      clientId: "test-client",
+      apiKey: "test-key",
+      minIntervalMs: 0,
+      retries: 0,
+      cache: new TtlCache<string>(),
+      timingsAsToday: (n) => (n === "12618" ? { same: false } : n === "12432" ? undefined : { same: true }),
+    });
+    const legs = await p.trainsBetween({ from: "MAO", to: "ERS", date: "2026-10-19" });
+    expect(legs.map((l) => l.train_number)).not.toContain("12618");
+    expect(legs.map((l) => l.train_number)).toContain("12432"); // unknown to the timetable: kept
+    expect(legs).toHaveLength(5);
+  });
+});

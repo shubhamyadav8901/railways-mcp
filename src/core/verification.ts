@@ -32,7 +32,18 @@ export interface Conflict {
   field: string;
   values: Record<string, unknown>;
   /** Set when the disagreement was settled: the value shown and the sources behind it (see Correction.basis). */
-  majority?: { value: unknown; sources: string[]; basis: "majority" | "updated" };
+  majority?: {
+    value: unknown;
+    sources: string[];
+    basis: "majority" | "updated";
+    /** With an operational primary (PRIMARY_SOURCE=confirmtkt): the upstream the shown value's services share. */
+    shared_upstream?: string;
+    /**
+     * With an operational primary: the value shown is the primary's (current operational data) and these
+     * sources (usually the printed timetable) report a different one. Nothing was replaced.
+     */
+    differs?: Array<{ source: string; value: unknown }>;
+  };
 }
 
 /** A shown value that replaced the primary source's value. */
@@ -115,6 +126,15 @@ export interface FieldOptions {
   path?: CorrectionPath;
 }
 
+export interface ComparisonOptions {
+  /**
+   * The primary (shown) source presents the current operational data (PRIMARY_SOURCE=confirmtkt).
+   * Enables the mirror of `updated`: the primary's value stands when services sharing its upstream
+   * agree with it and only one other upstream (the printed timetable) differs. Default false.
+   */
+  presentOperational?: boolean;
+}
+
 /** Accumulates field comparisons across sources for one item (a train, a stop, a station). */
 export class Comparison {
   private readonly conflicts: Conflict[] = [];
@@ -127,6 +147,7 @@ export class Comparison {
   private unresolved = 0;
   private readonly sources: string[];
   private readonly notCounted: Set<string>;
+  private readonly presentOperational: boolean;
 
   constructor(
     /** Source ids taking part, in priority order; the first is the primary (shown) source. Duplicates are ignored. */
@@ -136,9 +157,11 @@ export class Comparison {
     notCounted: Iterable<string> = [],
     /** The upstream a source's data comes from; sources sharing an upstream count once. Default: each source is its own. */
     private readonly upstreamOf: (source: string) => string = (s) => s,
+    options: ComparisonOptions = {},
   ) {
     this.sources = [...new Set(sources)];
     this.notCounted = new Set(notCounted);
+    this.presentOperational = options.presentOperational ?? false;
   }
 
   private upstreams(sources: string[]): Set<string> {
@@ -151,10 +174,16 @@ export class Comparison {
    * - All agree: confirmed when 2+ distinct upstreams back it, else single_source.
    * - Disagreement:
    *   - majority: one value is backed by 2+ distinct upstreams, more than any other;
-   *   - updated: the primary (an evidence source) stands alone against 2+ services that
-   *     agree and share an upstream different from the primary's, with no service on that
-   *     upstream dissenting (e.g. current running vs printed timetable). That value is
-   *     shown, but it is not independent confirmation;
+   *   - updated, either way round (neither is independent confirmation):
+   *     - the primary (an evidence source) stands alone against 2+ services that agree and
+   *       share an upstream different from the primary's, with no service on that upstream
+   *       dissenting (e.g. current running vs printed timetable). Their value replaces the
+   *       primary's and is listed under corrections;
+   *     - with `presentOperational`: the primary and 1+ other services share its upstream and
+   *       agree, no service on that upstream dissents, and exactly one other group, backed by
+   *       one other upstream (the printed timetable), differs. The primary's value is already
+   *       the one shown: nothing is corrected, and the other value is disclosed under
+   *       conflicts[].majority.differs;
    *   - otherwise conflict.
    * A settled value that replaces the primary's is recorded as a correction and
    * needs a `path` to be applied; without one the field stays a conflict.
@@ -191,7 +220,13 @@ export class Comparison {
     const primaryValue = shownBy !== undefined ? values[shownBy] : undefined;
     const primaryGroup = groups.find((g) => shownBy !== undefined && g.sources.includes(shownBy));
 
-    let settled: { value: unknown; sources: string[]; basis: "majority" | "updated"; shared?: string } | null = null;
+    let settled: {
+      value: unknown;
+      sources: string[];
+      basis: "majority" | "updated";
+      shared?: string;
+      differs?: Array<{ source: string; value: unknown }>;
+    } | null = null;
     if (top && support(top) >= 2 && support(top) > (ranked[1] ? support(ranked[1]) : 0)) {
       settled = { value: top.value, sources: top.sources, basis: "majority" };
     } else if (shownBy !== undefined && !skip.has(shownBy) && primaryGroup && services(primaryGroup) === 1) {
@@ -205,6 +240,30 @@ export class Comparison {
         settled = { value: rival.value, sources: rival.sources, basis: "updated", shared };
       }
     }
+    if (!settled && this.presentOperational && shownBy !== undefined && !skip.has(shownBy) && primaryGroup) {
+      // mirror of the branch above: the primary is the current operational data, the printed timetable differs
+      const own = this.upstreamOf(shownBy);
+      const backers = primaryGroup.sources.filter((s) => !skip.has(s));
+      const others = groups.filter((g) => g !== primaryGroup);
+      const other = others.length === 1 ? others[0]! : undefined;
+      const dissent = others.some((g) => g.sources.some((s) => !skip.has(s) && this.upstreamOf(s) === own));
+      if (
+        backers.length >= 2 &&
+        backers.every((s) => this.upstreamOf(s) === own) &&
+        !dissent &&
+        other &&
+        support(other) === 1 &&
+        !this.upstreams(other.sources.filter((s) => !skip.has(s))).has(own)
+      ) {
+        settled = {
+          value: primaryValue,
+          sources: primaryGroup.sources,
+          basis: "updated",
+          shared: own,
+          differs: other.sources.map((s) => ({ source: s, value: values[s] })),
+        };
+      }
+    }
     const replacesPrimary = !!settled && primaryValue !== undefined && primaryValue !== null && !eq(primaryValue, settled.value);
     // A settled value that would replace the shown value is only honest if the caller can apply it.
     if (!settled || (replacesPrimary && !opts.path)) {
@@ -215,7 +274,12 @@ export class Comparison {
     this.conflicts.push({
       field: name,
       values: Object.fromEntries(reported),
-      majority: { value: settled.value, sources: settled.sources, basis: settled.basis },
+      majority: {
+        value: settled.value,
+        sources: settled.sources,
+        basis: settled.basis,
+        ...(settled.differs ? { shared_upstream: settled.shared, differs: settled.differs } : {}),
+      },
     });
     if (replacesPrimary && shownBy !== undefined) {
       this.corrections.push({
@@ -284,4 +348,4 @@ export function finish(v: Verification): Verification {
 }
 
 export const VERIFICATION_NOTE =
-  "verification.status (evidence is counted by upstream: eRail, RailRadar and ConfirmTkt likely all draw on Indian Railways' operational data and count once): confirmed = two independent upstreams (e.g. the printed official timetable and the operational data) agree on every compared field; majority = sources disagree but 2+ independent upstreams agree on the value shown; updated = the printed timetable differs and 2+ services built on the current operational data agree, so their value (the current running timetable) is shown, with the printed value under corrections; this is not independent confirmation; partially_confirmed = some fields are vouched for by only one upstream; conflict = sources disagree with no settled value (each value is listed); single_source = only one upstream vouches for it; not_checked = not compared (time budget, season, or no comparable data). not_counted sources (e.g. the archived 2016 timetable) are shown for contrast but never count.";
+  "verification.status (evidence is counted by upstream: eRail, RailRadar and ConfirmTkt likely all draw on Indian Railways' operational data and count once): confirmed = two independent upstreams (e.g. the printed official timetable and the operational data) agree on every compared field; majority = sources disagree but 2+ independent upstreams agree on the value shown; updated = the printed timetable differs and 2+ services built on the current operational data agree, so their value (the current running timetable) is shown, either replacing the printed value (listed under corrections) or, when such a service is the primary source, as the value already shown with the printed value under conflicts[].majority.differs; this is not independent confirmation; partially_confirmed = some fields are vouched for by only one upstream; conflict = sources disagree with no settled value (each value is listed); single_source = only one upstream vouches for it; not_checked = not compared (time budget, season, or no comparable data). not_counted sources (e.g. the archived 2016 timetable) are shown for contrast but never count.";

@@ -25,12 +25,32 @@
  *    offset, e.g. "2026-01-15T10:30:00.000"), `predictionPercentage`.
  *  - Station autosuggest returns city pseudo-entries ("Mumbai - All stations")
  *    that reuse a real station's code; they are dropped.
+ *  - `/api/v1/trains/schedule?trainNo=<n>` returns TrainName, TrainNo, DaysOfRun
+ *    {Sun..Sat: bool}, Classes, ErrorMsg and Schedule[] of halts (StationCode,
+ *    ArrivalTime/DepartureTime "HH:MM" or "" at the terminals, Distance km as a
+ *    string, Day); non-stopping points are under intermediateStations (ignored).
+ *    It ignores any date and serves the timings in force at fetch time (seen
+ *    with a Konkan train: monsoon timings for a November date).
  */
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { RailError } from "../../core/errors.js";
-import type { AvailabilityDay, Fare, FareLine, Leg, SeatAvailability, Station } from "../../core/types.js";
-import { isValidIsoDate, parseClock } from "../../core/time.js";
+import {
+  WEEKDAYS,
+  type AvailabilityDay,
+  type Fare,
+  type FareLine,
+  type Leg,
+  type ScheduledTime,
+  type SeatAvailability,
+  type Station,
+  type Stop,
+  type TrainSchedule,
+  type TrainSummary,
+  type Weekday,
+  type YearlyWindow,
+} from "../../core/types.js";
+import { absoluteMinutes, isValidIsoDate, parseClock, todayInIndia } from "../../core/time.js";
 import { TtlCache } from "../../lib/cache.js";
 import { httpGet, RateLimiter } from "../../lib/http.js";
 import type {
@@ -39,6 +59,7 @@ import type {
   FareQuery,
   FareSource,
   ProviderInfo,
+  ScheduleSource,
   StationSource,
   TrainsBetweenQuery,
   TrainsBetweenSource,
@@ -50,6 +71,7 @@ const PROVIDER = "confirmtkt";
 const HOST = "https://cttrainsapi.confirmtkt.com";
 const SEARCH_TTL_MS = 5 * 60_000;
 const STATION_TTL_MS = 24 * 60 * 60_000;
+const SCHEDULE_TTL_MS = 6 * 60 * 60_000;
 /** One stable random device id per process, as their web client sends. */
 const DEVICE_ID = randomUUID();
 
@@ -120,6 +142,24 @@ const StationBody = z.object({
   }),
 });
 
+const ScheduleStop = z.object({
+  StationCode: str,
+  StationName: optStr,
+  ArrivalTime: optStr,
+  DepartureTime: optStr,
+  Distance: num,
+  Day: num,
+});
+
+const ScheduleBody = z.object({
+  TrainName: optStr,
+  TrainNo: num,
+  DaysOfRun: z.record(str, z.unknown()).nullish(),
+  ErrorMsg: optStr,
+  Classes: z.array(z.unknown()).nullish(),
+  Schedule: z.array(ScheduleStop).nullish(),
+});
+
 export interface ConfirmTktOptions {
   /** Client identification headers sent with every request (from configuration). */
   clientId: string;
@@ -131,15 +171,22 @@ export interface ConfirmTktOptions {
   minIntervalMs?: number;
   /** Retries for network errors/5xx/429 (default: http.ts default). */
   retries?: number;
+  /**
+   * Whether a train runs to the same timings on `date` as today, per a timetable that knows its
+   * seasonal variants (the official one); undefined when that timetable doesn't have the train.
+   * ConfirmTkt ignores dates and always serves today's timings, so schedules and legs for dates
+   * with other timings are declined. Without it, dates are not checked.
+   */
+  timingsAsToday?: (trainNumber: string, date: string) => { same: boolean; valid?: YearlyWindow } | undefined;
 }
 
-export class ConfirmTktProvider implements StationSource, TrainsBetweenSource, AvailabilitySource, FareSource {
+export class ConfirmTktProvider implements StationSource, TrainsBetweenSource, ScheduleSource, AvailabilitySource, FareSource {
   readonly info: ProviderInfo = {
     id: PROVIDER,
     name: "ConfirmTkt (unofficial)",
     kind: "unofficial_api",
     upstream: OPERATIONAL_UPSTREAM,
-    capabilities: ["stations", "trains_between", "availability", "fare"],
+    capabilities: ["stations", "trains_between", "schedule", "availability", "fare"],
     dataAsOf: null,
     possiblyOutdated: false,
     url: "https://www.confirmtkt.com",
@@ -147,6 +194,7 @@ export class ConfirmTktProvider implements StationSource, TrainsBetweenSource, A
       "Undocumented third-party endpoint used by confirmtkt.com's web app; not an IRCTC partner feed and may change without notice.",
       "Availability and fares are ConfirmTkt's cached snapshots (see observed_at), not a live IRCTC query.",
       "Searches by journey date only; legs are filtered to the exact station codes asked for.",
+      "Schedules are the timings in force today; for a date on which the official timetable has different seasonal timings, ConfirmTkt doesn't answer.",
     ],
   };
 
@@ -157,6 +205,7 @@ export class ConfirmTktProvider implements StationSource, TrainsBetweenSource, A
 
   private readonly clientId: string;
   private readonly apiKey: string;
+  private readonly timingsAsToday: ConfirmTktOptions["timingsAsToday"];
 
   constructor(opts: ConfirmTktOptions) {
     if (!opts.clientId || !opts.apiKey)
@@ -167,6 +216,7 @@ export class ConfirmTktProvider implements StationSource, TrainsBetweenSource, A
     this.limiter = new RateLimiter(opts.minIntervalMs ?? 1000);
     this.timeoutMs = opts.fetchTimeoutMs;
     this.retries = opts.retries;
+    this.timingsAsToday = opts.timingsAsToday;
   }
 
   // ---------------------------------------------------------------- stations
@@ -215,7 +265,38 @@ export class ConfirmTktProvider implements StationSource, TrainsBetweenSource, A
       throw new RailError("UNSUPPORTED", "ConfirmTkt only searches trains for a specific journey date", PROVIDER);
     }
     const { from, to, list } = await this.search(q.from, q.to, q.date);
-    return list.filter((t) => sameRoute(t, from, to)).map(toLeg);
+    const legs = list.filter((t) => sameRoute(t, from, to)).map(toLeg);
+    // trains whose timings on this date are another seasonal variant than today's are left to the timetable
+    return legs.filter((l) => this.timingsAsToday?.(l.train_number, q.date!)?.same !== false);
+  }
+
+  // ---------------------------------------------------------------- schedule
+
+  /**
+   * The train's current schedule. ConfirmTkt ignores dates and serves the timings in force today,
+   * so a date on which the official timetable has other (seasonal) timings is UNSUPPORTED.
+   */
+  async getSchedule(trainNumber: string, date?: string): Promise<TrainSchedule> {
+    const number = trainNumber.trim();
+    // not INVALID_INPUT: that would stop the provider chain before the timetable is asked
+    if (!/^\d{5}$/.test(number)) throw new RailError("UNSUPPORTED", `ConfirmTkt schedules need a 5-digit train number`, PROVIDER);
+    const today = todayInIndia();
+    const on = date ?? today;
+    const season = this.timingsAsToday?.(number, on);
+    if (season && !season.same) {
+      throw new RailError(
+        "UNSUPPORTED",
+        `ConfirmTkt only publishes the timings in force today (${today}); the official timetable has other timings for train ${number} on ${on}`,
+        PROVIDER,
+      );
+    }
+    const body = await this.getJson(`${HOST}/api/v1/trains/schedule?trainNo=${number}`, SCHEDULE_TTL_MS);
+    const s = parseSchedule(body, number);
+    return season?.valid ? { ...s, valid: season.valid } : s;
+  }
+
+  async searchTrains(_query: string, _limit: number): Promise<TrainSummary[]> {
+    throw new RailError("UNSUPPORTED", "ConfirmTkt train search is not used; the local timetable search answers", PROVIDER);
   }
 
   // ------------------------------------------------------------ availability
@@ -457,6 +538,93 @@ export function categorise(raw: string): AvailabilityDay["category"] {
   if (/^RAC\b/.test(current)) return "rac";
   if (/^[A-Z]*WL\s*\d*/.test(current)) return "waitlist";
   return "unknown";
+}
+
+const CT_DAYS: Record<string, Weekday> = { Mon: "MON", Tue: "TUE", Wed: "WED", Thu: "THU", Fri: "FRI", Sat: "SAT", Sun: "SUN" };
+
+/** `DaysOfRun` {Sun..Sat: bool} → origin running days; null unless all seven are booleans. */
+function runningDays(d: Record<string, unknown> | null | undefined): Weekday[] | null {
+  if (!d || !Object.keys(CT_DAYS).every((k) => typeof d[k] === "boolean")) return null;
+  const on = new Set(Object.entries(CT_DAYS).flatMap(([k, w]) => (d[k] ? [w] : [])));
+  return WEEKDAYS.filter((w) => on.has(w));
+}
+
+/**
+ * Exported for tests. Builds a schedule from `/api/v1/trains/schedule`.
+ * `Day` is taken as the journey day of the stop's arrival (the origin's departure for the origin);
+ * a departure whose clock is earlier than its arrival's is on the next day.
+ */
+export function parseSchedule(json: unknown, number: string): TrainSchedule {
+  const body = parseWith(ScheduleBody, json);
+  const err = body.ErrorMsg?.trim();
+  if (err) {
+    const notFound = /not found|invalid train|no train|does not exist|no schedule/i.test(err);
+    throw new RailError(notFound ? "NOT_FOUND" : "UPSTREAM_UNAVAILABLE", `ConfirmTkt error: ${err}`, PROVIDER);
+  }
+  const rows = body.Schedule ?? [];
+  if (body.TrainNo == null || String(body.TrainNo).trim() === "" || rows.length === 0) {
+    throw new RailError("NOT_FOUND", `ConfirmTkt has no schedule for train ${number}`, PROVIDER);
+  }
+  if (String(body.TrainNo).trim() !== number) {
+    throw new RailError("UPSTREAM_UNAVAILABLE", `ConfirmTkt returned train ${String(body.TrainNo)} for ${number}`, PROVIDER);
+  }
+  const bad = (what: string) =>
+    new RailError("UPSTREAM_UNAVAILABLE", `ConfirmTkt returned a malformed schedule for train ${number} (${what})`, PROVIDER);
+  const clock = (v: string | null | undefined, code: string): number | null => {
+    if (v === null || v === undefined || v.trim() === "") return null;
+    const m = parseClock(v.trim());
+    if (m === null) throw bad(`bad time at ${code}`);
+    return m;
+  };
+  const warnings: string[] = [];
+  let prev: { abs: number; code: string } | null = null;
+  const last = rows.length - 1;
+  const stops: Stop[] = rows.map((e, i) => {
+    const code = e.StationCode.trim().toUpperCase();
+    if (!/^[A-Z0-9]{1,8}$/.test(code)) throw bad("bad station code");
+    const day = toNum(e.Day);
+    if (day === null || !Number.isInteger(day) || day < 1) throw bad(`bad day at ${code}`);
+    const arr = i === 0 ? null : clock(e.ArrivalTime, code);
+    const dep = i === last ? null : clock(e.DepartureTime, code);
+    const arrival: ScheduledTime | null = arr === null ? null : { time: e.ArrivalTime!.trim().slice(0, 5), day };
+    const departure: ScheduledTime | null =
+      dep === null ? null : { time: e.DepartureTime!.trim().slice(0, 5), day: arr !== null && dep < arr ? day + 1 : day };
+    for (const t of [arrival, departure]) {
+      if (!t) continue;
+      const abs = absoluteMinutes(t);
+      if (prev && abs < prev.abs) warnings.push(`ConfirmTkt times go backwards between ${prev.code} and ${code}`);
+      if (prev && abs - prev.abs >= 1440) warnings.push(`ConfirmTkt shows a gap of a day or more between ${prev.code} and ${code}`);
+      prev = { abs, code };
+    }
+    return {
+      seq: i + 1,
+      station_code: code,
+      station_name: e.StationName?.trim() || code,
+      arrival,
+      departure,
+      halt_minutes: arrival && departure ? absoluteMinutes(departure) - absoluteMinutes(arrival) : null,
+      halts: true, // every Schedule row is a halt; non-stopping points are under intermediateStations
+      distance_km: toNum(e.Distance),
+    };
+  });
+  const first = stops[0]!;
+  const end = stops[last]!;
+  if (stops.length < 2 || !first.departure || !end.arrival) throw bad("no origin departure or terminus arrival");
+  const classes = (body.Classes ?? []).filter((c): c is string => typeof c === "string").map((c) => c.trim().toUpperCase());
+  return {
+    number,
+    name: body.TrainName?.trim() || number,
+    type: null,
+    origin_code: first.station_code,
+    origin_name: first.station_name,
+    destination_code: end.station_code,
+    destination_name: end.station_name,
+    running_days: runningDays(body.DaysOfRun),
+    classes: classes.length && classes.length === (body.Classes ?? []).length ? classes : null,
+    distance_km: end.distance_km,
+    stops,
+    data_warnings: warnings,
+  };
 }
 
 function toLeg(t: CtTrain): Leg {
