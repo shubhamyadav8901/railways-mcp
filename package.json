@@ -1,6 +1,6 @@
 {
   "name": "indian-railways-mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "MCP server giving AI assistants cross-checked Indian Railways timetables, journey planning, punctuality history, seats and fares",
   "license": "Apache-2.0",
   "private": true,

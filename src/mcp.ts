@@ -7,7 +7,7 @@ import { registerPunctualityTools } from "./tools/punctuality.js";
 import { registerStationTools } from "./tools/stations.js";
 import { registerTrainTools } from "./tools/trains.js";
 
-export const SERVER_INFO = { name: "indian-railways", version: "0.2.0" };
+export const SERVER_INFO = { name: "indian-railways", version: "0.3.0" };
 
 const INSTRUCTIONS = `Indian Railways timetables, journey planning, punctuality history and (when configured) seat availability and fares.
 - Tools take station codes (e.g. NDLS) and train numbers; search_stations / search_trains / find_nearby_stations resolve names and places.

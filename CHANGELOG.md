@@ -4,6 +4,8 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-05
+
 ### Added
 - **`PRIMARY_SOURCE=confirmtkt`** (opt-in, default `official`): ConfirmTkt's current operational data is presented first for stations, schedules and trains between, and the official timetable becomes a cross-check and fallback. When ConfirmTkt and another operational service agree against the printed timetable, the status is `updated` with the printed value under the new `verification.conflicts[].majority.differs` (nothing is corrected). Station rows fill ConfirmTkt's unknown fields from the local datasets and say so in `filled_from`. `get_data_sources` reports `primary_source` and `presented_first`. Startup fails on an unknown value, or on `confirmtkt` without ConfirmTkt enabled.
 - **ConfirmTkt schedules** (`/api/v1/trains/schedule`), a third operational schedule cross-check when ConfirmTkt is enabled. ConfirmTkt only serves today's timings, so it declines dates on which the official timetable has other seasonal timings, for schedules and for trains between.
@@ -50,5 +52,6 @@ First public release. (The repository history was consolidated into v0.2.0; 0.1.
 - **Opt-in third-party sources:** ConfirmTkt, eRail, etrain.info, NTES and RailRadar, each rate-limited and cached. ConfirmTkt and eRail need operator-supplied client settings.
 - **Packaging and checks:** Docker and docker compose for local use, a live source smoke test (`npm run smoke`), and design documentation with C4, UML and flowchart diagrams.
 
-[Unreleased]: https://github.com/shubhamyadav8901/railways-mcp/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/shubhamyadav8901/railways-mcp/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/shubhamyadav8901/railways-mcp/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/shubhamyadav8901/railways-mcp/releases/tag/v0.2.0
