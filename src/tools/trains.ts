@@ -10,6 +10,7 @@ import { canonLeg, mergeTrainsBetween } from "../verify/verifier.js";
 import { applyCorrections, refreshLeg, refreshRow, refreshSchedule } from "../verify/apply.js";
 import {
   capped,
+  classCode,
   clockTime,
   compact,
   handler,
@@ -108,13 +109,23 @@ export function registerTrainTools(server: McpServer, ctx: AppContext): void {
           .max(7 * 1440)
           .optional(),
         overnight_only: z.boolean().default(false).describe("Only journeys that cross midnight between boarding and alighting"),
-        travel_class: z.string().trim().toUpperCase().optional().describe("Only trains listing this class, e.g. 3A, SL, CC"),
+        travel_class: z
+          .string()
+          .trim()
+          .toUpperCase()
+          .optional()
+          .describe(`Only trains listing this class. Valid classes: ${classCode.options.join(", ")}`),
         sort: z.enum(["departure", "duration", "arrival"]).default("departure"),
         limit: z.number().int().min(1).max(50).default(25),
       },
       annotations: { ...READ_ONLY, openWorldHint: true },
     },
     handler(async (a) => {
+      // Reject typos like "3AC" (unsupported classes, not zero trains). The
+      // valid codes come from the same enum the booking tools use.
+      if (a.travel_class && !classCode.safeParse(a.travel_class).success) {
+        throw new RailError("INVALID_INPUT", `Unknown travel class "${a.travel_class}". Valid classes: ${classCode.options.join(", ")}.`);
+      }
       a.from = await requireStation(ctx, a.from);
       a.to = await requireStation(ctx, a.to);
       if (a.from === a.to) throw new RailError("INVALID_INPUT", "from and to are the same station");

@@ -6,8 +6,9 @@ import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { buildContext, loadConfig } from "../src/config.js";
 import { createMcpServer } from "../src/mcp.js";
+import { LocalTimetableProvider } from "../src/providers/timetable/local-timetable.js";
 import { createApp } from "../src/server.js";
-import { sampleProvider } from "./helpers.js";
+import { sampleProvider, sampleTimetable } from "./helpers.js";
 
 const ctx = buildContext(loadConfig({ GEOCODER: "off" }), { timetables: [sampleProvider()] });
 
@@ -104,6 +105,38 @@ describe("MCP server (in-memory)", () => {
   it("validates input types", async () => {
     const r = await client.callTool({ name: "find_trains_between", arguments: { from: "AAA", to: "DDD", date: "2026-02-30" } });
     expect(r.isError).toBe(true);
+  });
+
+  it("rejects an unknown travel_class instead of returning an empty list", async () => {
+    const bad = await client.callTool({ name: "find_trains_between", arguments: { from: "BBB", to: "DDD", travel_class: "3AC" } });
+    expect(bad.isError).toBe(true);
+    const err = parse(bad).error;
+    expect(err.code).toBe("INVALID_INPUT");
+    // the error names the offender and the valid classes so the model can correct itself
+    expect(err.message).toMatch(/3AC/);
+    expect(err.message).toMatch(/SL/);
+  });
+
+  it("filters by a valid travel_class", async () => {
+    const match = parse(await client.callTool({ name: "find_trains_between", arguments: { from: "BBB", to: "DDD", travel_class: "3A" } }));
+    expect(match.trains.map((t: any) => t.train_number)).toEqual(["22222"]);
+    // a valid class no train offers is simply an empty (successful) list
+    const none = parse(await client.callTool({ name: "find_trains_between", arguments: { from: "BBB", to: "DDD", travel_class: "1A" } }));
+    expect(none.trains).toEqual([]);
+    expect((none as any).error).toBeUndefined();
+  });
+
+  it("keeps trains with unknown classes and says so when a class filter is applied", async () => {
+    const timetable = sampleTimetable();
+    timetable.trains = timetable.trains.map((t) => (t.n === "22222" ? { ...t, classes: null } : t));
+    const [clientT, serverT] = InMemoryTransport.createLinkedPair();
+    const c = new Client({ name: "test", version: "1" });
+    const cls = buildContext(loadConfig({ GEOCODER: "off" }), { timetables: [new LocalTimetableProvider(timetable)] });
+    await Promise.all([createMcpServer(cls).connect(serverT), c.connect(clientT)]);
+    const r = parse(await c.callTool({ name: "find_trains_between", arguments: { from: "BBB", to: "DDD", travel_class: "3A" } }));
+    expect(r.trains.map((t: any) => t.train_number)).toEqual(["22222"]);
+    expect(r.notes.join(" ")).toMatch(/no class information/);
+    await c.close();
   });
 });
 
