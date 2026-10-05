@@ -1,4 +1,5 @@
 import { RailError } from "../core/errors.js";
+import { packageVersion } from "./version.js";
 
 /** Serialises requests so at most one starts every `intervalMs` (per upstream). */
 export class RateLimiter {
@@ -122,4 +123,5 @@ export async function httpGetJson<T = unknown>(url: string, opts: HttpOptions): 
 }
 
 export const USER_AGENT =
-  process.env.HTTP_USER_AGENT?.trim() || "indian-railways-mcp/0.1 (self-hosted MCP server; set HTTP_USER_AGENT to add contact details)";
+  process.env.HTTP_USER_AGENT?.trim() ||
+  `indian-railways-mcp/${packageVersion()} (self-hosted MCP server; set HTTP_USER_AGENT to add contact details)`;

@@ -6,8 +6,9 @@ import { registerMetaTools } from "./tools/meta.js";
 import { registerPunctualityTools } from "./tools/punctuality.js";
 import { registerStationTools } from "./tools/stations.js";
 import { registerTrainTools } from "./tools/trains.js";
+import { packageVersion } from "./lib/version.js";
 
-export const SERVER_INFO = { name: "indian-railways", version: "0.3.0" };
+export const SERVER_INFO = { name: "indian-railways", version: packageVersion() };
 
 const INSTRUCTIONS = `Indian Railways timetables, journey planning, punctuality history and (when configured) seat availability and fares.
 - Tools take station codes (e.g. NDLS) and train numbers; search_stations / search_trains / find_nearby_stations resolve names and places.
@@ -15,7 +16,7 @@ const INSTRUCTIONS = `Indian Railways timetables, journey planning, punctuality 
 - Building blocks for journey planning: find_trains_between (direct), get_station_trains (trains through a junction, filterable by direction), find_connections (2–3 train journeys), get_train_schedule (full route), find_nearby_stations (alternative stations).
 - Every response has a "source" object: data_as_of and possibly_outdated show how current the data is. Timetable times are scheduled times; punctuality figures are historical delays.
 - Static facts carry verification.status (confirmed / majority / updated / partially_confirmed / conflict / single_source / not_checked) from cross-checking sources; evidence is counted by upstream (services sharing Indian Railways' operational data count once). See the verification note in each response.
-- get_data_sources lists which sources and capabilities are active. Errors have a code (NOT_FOUND, UNSUPPORTED, UPSTREAM_UNAVAILABLE, RATE_LIMITED, INVALID_INPUT) and mean the value is unknown.`;
+- get_data_sources lists which sources and capabilities are active. Errors have a code (NOT_FOUND, UNSUPPORTED, UPSTREAM_UNAVAILABLE, RATE_LIMITED, INVALID_INPUT, UPSTREAM_AUTH) and mean the value is unknown.`;
 
 /** Added when PRIMARY_SOURCE=confirmtkt. */
 const OPERATIONAL_PRIMARY = `
