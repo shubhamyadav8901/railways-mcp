@@ -4,6 +4,9 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Added
+- **`get_punctuality` splits reused train numbers by route (#32):** seasonal specials reuse their numbers on different routes, so a long window mixed runs of different trains. A route counts only when at least 2 runs share the same end stations. Two routes count as different only when each has a station recorded in all its runs that the other never recorded, no run outside the routes recorded both, and their seasons don't overlap. When that holds, `route_variants` gives each route's dates, run count and per-station statistics, and a note says the combined figures mix them. Anything less clear-cut, which could be missing data, is not split.
+
 ### Fixed
 - **Punctuality for seasonal specials (#27):** etrain.info's longer periods (`3m`, `6m`, `1y`) are now fetched even when the train has no runs "this month", so specials such as 04001 get their earlier runs. A period with no runs is reported as `NOT_FOUND` naming the period (and suggesting longer ones) instead of an "unexpected response shape" error. RailRadar's empty route for a known train is likewise `NOT_FOUND`.
 

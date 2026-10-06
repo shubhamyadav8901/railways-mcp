@@ -1,7 +1,14 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { RailError } from "../core/errors.js";
-import { LOW_SAMPLE_RUNS, MAX_COMPARABLE_SPAN_DAYS, RECENT_RUNS, crossCheckStations, statsFromRuns } from "../core/punctuality.js";
+import {
+  LOW_SAMPLE_RUNS,
+  MAX_COMPARABLE_SPAN_DAYS,
+  RECENT_RUNS,
+  crossCheckStations,
+  routeVariants,
+  statsFromRuns,
+} from "../core/punctuality.js";
 import { todayInIndia } from "../core/time.js";
 import type { DelayHistory } from "../core/types.js";
 import type { AppContext } from "../config.js";
@@ -18,7 +25,7 @@ export function registerPunctualityTools(server: McpServer, ctx: AppContext): vo
     {
       title: "Get a train's punctuality history",
       description:
-        "How late a train has historically run, per station: runs counted, average/median/maximum delay, and the share of runs within 15 min, over 30 min and over 60 min late, over a chosen past period. Each station's recent average is cross-checked against other sources' averages within a 10-minute tolerance (corroborated / conflict / not_comparable / single_source), with the period each figure covers. Covers past runs only, not the current position. Figures are as reported by the sources; period, run counts and how recent the data is are included.",
+        "How late a train has historically run, per station: runs counted, average/median/maximum delay, and the share of runs within 15 min, over 30 min and over 60 min late, over a chosen past period. Each station's recent average is cross-checked against other sources' averages within a 10-minute tolerance (corroborated / conflict / not_comparable / single_source), with the period each figure covers. When the train number ran on different routes during the period (e.g. a reused special-train number), route_variants splits the runs by route. Covers past runs only, not the current position. Figures are as reported by the sources; period, run counts and how recent the data is are included.",
       inputSchema: {
         train_number: trainNumber,
         period: z.enum(["1w", "1m", "3m", "6m", "1y"]).default("1m").describe("History window: 1w, 1m (default), 3m, 6m or 1y"),
@@ -57,10 +64,13 @@ export function registerPunctualityTools(server: McpServer, ctx: AppContext): vo
             };
         return { ...base, cross_check: checks[i] };
       });
+      const split = perRun ? routeVariants(h) : null;
+      let variants = split?.variants ?? null;
       if (station) {
         rows = rows.filter((r) => ctx.codes.same(r.code, station));
         if (!rows.length)
           throw new RailError("NOT_FOUND", `${station} is not on train ${train_number}'s route in ${primary.source}'s history`);
+        variants = variants?.map((v) => ({ ...v, stations: v.stations.filter((st) => ctx.codes.same(st.code, station)) })) ?? null;
       }
 
       const notes: string[] = [
@@ -70,6 +80,17 @@ export function registerPunctualityTools(server: McpServer, ctx: AppContext): vo
       ];
       if (stats?.some((s) => s.low_sample))
         notes.push(`low_sample = fewer than ${LOW_SAMPLE_RUNS} runs with data at that station; treat its percentages with caution.`);
+      if (variants) {
+        const latest = variants[variants.length - 1]!;
+        notes.push(
+          `route_variants: this train number ran on ${variants.length} different routes in the period (by the first and last stations with data in each run): ` +
+            variants.map((v) => `${v.from}→${v.to} ${v.period.from}..${v.period.to} (${v.runs} runs)`).join("; ") +
+            `. stations[] combines all of them; use the variant whose route matches the run you care about (the latest is ${latest.from}→${latest.to}).` +
+            (split!.unassigned_runs
+              ? ` ${split!.unassigned_runs} run(s) with data could not be attributed to one route and appear only in stations[].`
+              : ""),
+        );
+      }
       if (!perRun) notes.push(`${primary.source} publishes averages only, so run counts and percentages are unavailable.`);
       else if (!h.runs!.length) notes.push(`${primary.source} lists no runs of this train in the chosen period.`);
       const lastRun = h.period?.to ?? null;
@@ -82,6 +103,7 @@ export function registerPunctualityTools(server: McpServer, ctx: AppContext): vo
         runs_counted: h.runs?.length ?? null,
         last_run_days_ago: lagDays,
         stations: rows,
+        ...(variants ? { route_variants: variants } : {}),
         verification: { status: "see stations[].cross_check", ...(unavailable.length ? { unavailable } : {}) },
         notes,
         source: res.source,
