@@ -84,6 +84,126 @@ export function statsFromRuns(h: DelayHistory): StationStats[] {
   });
 }
 
+/** Runs that must share exactly the same end stations before they count as a route. */
+export const MIN_VARIANT_RUNS = 2;
+
+/** One route a reused train number ran on, as shown by its runs' data. */
+export interface RouteVariant {
+  /** The first and last stations with data (in the source's order) that this route's runs share. */
+  from: string;
+  to: string;
+  period: { from: string; to: string };
+  /** Runs with data attributed to this route. */
+  runs: number;
+  /** Statistics over this route's runs, for the stations it has data at. */
+  stations: StationStats[];
+}
+
+export interface RouteSplit {
+  variants: RouteVariant[];
+  /** Runs with data that fit no route or more than one, left out of every variant. */
+  unassigned_runs: number;
+}
+
+/**
+ * Splits a per-run history by route when the train number was reused on different
+ * routes (typically seasonal specials), using only the source's per-run data. A
+ * station that was never recorded is not evidence on its own (data is often missing),
+ * so the rules lean on stations recorded in every run:
+ *
+ * - A run's ends are its first and last stations with data. A route is established
+ *   only when at least MIN_VARIANT_RUNS runs share exactly those ends; its core
+ *   stations are those recorded in all of its runs (always including its ends).
+ * - Two routes differ only if each has a core station the other never recorded, no run
+ *   outside the established routes recorded a marking station of both, and their date
+ *   ranges don't overlap.
+ *   Every pair of established routes must differ.
+ * - A route needs two different end stations.
+ * - Any other run with data is attributed to a route only when that route's span (first
+ *   to last station) is the only one containing the run, the route recorded every
+ *   station the run did, and the run's date is not inside another route's range;
+ *   otherwise it is left out (unassigned).
+ *
+ * Whenever this is not clear-cut the result is null: missed splits are preferred to
+ * false ones.
+ */
+export function routeVariants(h: DelayHistory): RouteSplit | null {
+  type Run = { date: string; delays: Array<number | null>; lo: number; hi: number; seen: Set<number> };
+  const runs: Run[] = [...(h.runs ?? [])]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .flatMap((r) => {
+      const idx = r.delays.flatMap((d, i) => (typeof d === "number" && Number.isFinite(d) ? [i] : []));
+      return idx.length ? [{ ...r, lo: idx[0]!, hi: idx[idx.length - 1]!, seen: new Set(idx) }] : [];
+    });
+
+  const byEnds = new Map<string, Run[]>();
+  for (const r of runs) {
+    const key = `${r.lo}:${r.hi}`;
+    byEnds.set(key, [...(byEnds.get(key) ?? []), r]);
+  }
+  const routes = [...byEnds.values()]
+    .filter((g) => g.length >= MIN_VARIANT_RUNS && g[0]!.lo < g[0]!.hi)
+    .map((g) => ({
+      lo: g[0]!.lo,
+      hi: g[0]!.hi,
+      seen: new Set(g.flatMap((r) => [...r.seen])),
+      core: new Set([...g[0]!.seen].filter((i) => g.every((r) => r.seen.has(i)))),
+      runs: g,
+    }));
+  if (routes.length < 2) return null;
+  // runs not explained by an established route (a third route's runs may span both)
+  const counted = new Set(routes.flatMap((r) => r.runs));
+  const loose = runs.filter((r) => !counted.has(r));
+  for (let a = 0; a < routes.length; a++) {
+    for (let b = a + 1; b < routes.length; b++) {
+      const markA = [...routes[a]!.core].filter((i) => !routes[b]!.seen.has(i));
+      const markB = [...routes[b]!.core].filter((i) => !routes[a]!.seen.has(i));
+      if (!markA.length || !markB.length) return null;
+      // a loose run recording both routes' marking stations shows a single train with gaps
+      if (loose.some((r) => markA.some((i) => r.seen.has(i)) && markB.some((i) => r.seen.has(i)))) return null;
+    }
+  }
+  const range = (rs: Run[]) => ({ from: rs[0]!.date, to: rs[rs.length - 1]!.date });
+  const established = routes.map((r) => range(r.runs));
+  if (overlaps(established)) return null;
+
+  let unassigned = 0;
+  for (const run of loose) {
+    // candidates: routes whose span contains the run; attribute only to a single candidate
+    // that itself recorded every station the run did
+    const fits = routes.flatMap((r, k) => (run.lo >= r.lo && run.hi <= r.hi ? [k] : []));
+    const only = fits.length === 1 ? routes[fits[0]!]! : null;
+    const insideOther = established.some((p, k) => k !== fits[0] && run.date >= p.from && run.date <= p.to);
+    if (only && subset(run.seen, only.seen) && !insideOther) only.runs.push(run);
+    else unassigned++;
+  }
+  for (const r of routes) r.runs.sort((a, b) => a.date.localeCompare(b.date));
+  routes.sort((a, b) => a.runs[0]!.date.localeCompare(b.runs[0]!.date));
+  if (overlaps(routes.map((r) => range(r.runs)))) return null;
+
+  return {
+    variants: routes.map((r) => ({
+      from: h.stations[r.lo]!.code,
+      to: h.stations[r.hi]!.code,
+      period: range(r.runs),
+      runs: r.runs.length,
+      stations: statsFromRuns({ ...h, runs: r.runs.map(({ date, delays }) => ({ date, delays })) }).filter((s) => s.runs_with_data > 0),
+    })),
+    unassigned_runs: unassigned,
+  };
+}
+
+function subset(a: Set<number>, b: Set<number>): boolean {
+  for (const x of a) if (!b.has(x)) return false;
+  return true;
+}
+
+/** Whether any two date ranges share a day. */
+function overlaps(ranges: Array<{ from: string; to: string }>): boolean {
+  const sorted = [...ranges].sort((a, b) => a.from.localeCompare(b.from));
+  return sorted.some((r, i) => i > 0 && r.from <= sorted[i - 1]!.to);
+}
+
 const statsCache = new WeakMap<DelayHistory, StationStats[]>();
 function cachedStats(h: DelayHistory): StationStats[] {
   let s = statsCache.get(h);

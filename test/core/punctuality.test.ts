@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { crossCheckStations, statsFromRuns } from "../../src/core/punctuality.js";
+import { crossCheckStations, routeVariants, statsFromRuns } from "../../src/core/punctuality.js";
 import type { DelayHistory } from "../../src/core/types.js";
 
 const base = (over: Partial<DelayHistory>): DelayHistory => ({
@@ -135,5 +135,226 @@ describe("not_comparable when the long-span source is not the primary", () => {
     const [, kota] = crossCheckStations({ source: "ntes", history: ntesPrimary }, [{ source: "etrain", history: weekly }], 10);
     expect(kota!.status).toBe("not_comparable");
     expect(kota!.reason).toMatch(/^etrain's last 7 runs span 42 days/);
+  });
+});
+
+describe("routeVariants (a reused train number, #32)", () => {
+  // Stations in the source's order; "x" = delay recorded, "." = none.
+  const hist = (rows: Array<[string, string]>): DelayHistory =>
+    base({
+      stations: ["MMCT", "DDR", "BVI", "KOTA", "NZM", "NDLS"].map((code) => ({ code, name: null })),
+      runs: rows.map(([date, mask]) => ({ date, delays: [...mask].map((c, i) => (c === "x" ? 10 * (i + 1) : null)) })),
+    });
+  const ends = (rows: Array<[string, string]>) => routeVariants(hist(rows))?.variants.map((v) => [v.from, v.to, v.runs]) ?? null;
+
+  it("splits seasons on clearly different routes, with per-route statistics", () => {
+    const split = routeVariants(
+      hist([
+        ["2025-12-07", "x.xx.x"],
+        ["2025-12-14", "x.xx.x"],
+        ["2026-05-01", ".xxxx."],
+        ["2026-05-08", ".xxxx."],
+        ["2026-05-15", ".xxxx."],
+        ["2026-07-16", "......"], // no data: ignored
+      ]),
+    )!;
+    expect(split.unassigned_runs).toBe(0);
+    expect(split.variants[0]).toMatchObject({ from: "MMCT", to: "NDLS", runs: 2, period: { from: "2025-12-07", to: "2025-12-14" } });
+    expect(split.variants[1]).toMatchObject({ from: "DDR", to: "NZM", runs: 3, period: { from: "2026-05-01", to: "2026-05-15" } });
+    expect(split.variants[0]!.stations.map((s) => s.code)).toEqual(["MMCT", "BVI", "KOTA", "NDLS"]);
+    expect(split.variants[1]!.stations.find((s) => s.code === "KOTA")).toMatchObject({ runs_with_data: 3, avg_delay_minutes: 40 });
+  });
+
+  it("attributes a partial run only when its stations fit one route alone", () => {
+    const rows: Array<[string, string]> = [
+      ["2025-12-07", "x.xx.x"],
+      ["2025-12-10", "x.x..."], // MMCT is only on the December route → December
+      ["2025-12-14", "x.xx.x"],
+      ["2026-04-20", "..xx.."], // BVI and KOTA are on both routes → left out
+      ["2026-05-01", ".xxxx."],
+      ["2026-05-08", ".xxxx."],
+    ];
+    const split = routeVariants(hist(rows))!;
+    expect(split.variants.map((v) => [v.from, v.to, v.runs])).toEqual([
+      ["MMCT", "NDLS", 3],
+      ["DDR", "NZM", 2],
+    ]);
+    expect(split.unassigned_runs).toBe(1);
+    expect(split.variants[0]!.period).toEqual({ from: "2025-12-07", to: "2025-12-14" });
+  });
+
+  it("does not split one route because of missing data at either end", () => {
+    // gaps at opposite ends early on, then full runs
+    expect(
+      ends([
+        ["01-01", ".xxxxx"],
+        ["01-02", "xxxxx."],
+        ["01-03", "xxxxxx"],
+        ["01-04", "xxxxxx"],
+      ]),
+    ).toBeNull();
+    expect(
+      ends([
+        ["01-01", "x....."],
+        ["01-02", ".xxxxx"],
+        ["01-03", "xxxxxx"],
+      ]),
+    ).toBeNull();
+    // a repeated gap pattern at the end of the window
+    expect(
+      ends([
+        ["01-01", ".xxxxx"],
+        ["01-02", ".xxxxx"],
+        ["01-03", "xxxxx."],
+      ]),
+    ).toBeNull();
+    // the same gap pattern recurring throughout: routes interleave
+    expect(
+      ends([
+        ["01-01", "xxxxxx"],
+        ["01-02", ".xxxxx"],
+        ["01-03", "xxxxxx"],
+        ["01-04", ".xxxxx"],
+      ]),
+    ).toBeNull();
+  });
+
+  it("makes no claim when one route could be the other with missing data", () => {
+    // DDR→NZM is a section of DDR→NDLS (which calls at NZM)
+    expect(
+      ends([
+        ["02-27", ".xxxxx"],
+        ["03-06", ".xxxxx"],
+        ["05-01", ".xxxx."],
+        ["05-08", ".xxxx."],
+      ]),
+    ).toBeNull();
+  });
+
+  it("makes no claim when routes interleave (A-B-A)", () => {
+    expect(
+      ends([
+        ["01-01", "x.xx.x"],
+        ["01-02", "x.xx.x"],
+        ["02-01", ".xxxx."],
+        ["02-02", ".xxxx."],
+        ["03-01", "x.xx.x"],
+      ]),
+    ).toBeNull();
+  });
+
+  it("leaves out a run dated inside another route's season; makes no claim when one would stretch a route over another", () => {
+    const base: Array<[string, string]> = [
+      ["2025-12-07", "x.xx.x"],
+      ["2025-12-14", "x.xx.x"],
+      ["2026-05-01", ".xxxx."],
+      ["2026-07-01", ".xxxx."],
+    ];
+    // a December-route run (MMCT) dated inside the May–July season: left out
+    const inside = routeVariants(hist([...base, ["2026-06-01", "x.x..."]]))!;
+    expect(inside.unassigned_runs).toBe(1);
+    expect(inside.variants.map((v) => v.runs)).toEqual([2, 2]);
+    // the same run dated after that season would stretch December over it: no claim
+    expect(ends([...base, ["2026-08-01", "x.x..."]])).toBeNull();
+  });
+
+  it("a one-off reading at an intermediate station doesn't turn a terminal gap into a route", () => {
+    expect(
+      ends([
+        ["2026-01-01", "xxx.xx"],
+        ["2026-01-08", "xxx.xx"],
+        ["2026-01-15", "xxx.xx"],
+        ["2026-02-01", "xxxxx."], // KOTA recorded once while NDLS isn't recorded all month
+        ["2026-02-08", "xxx.x."],
+        ["2026-02-15", "xxx.x."],
+      ]),
+    ).toBeNull();
+  });
+
+  it("a run covering both routes' marking stations shows one train: no claim", () => {
+    expect(
+      ends([
+        ["2026-01-01", ".xxxxx"],
+        ["2026-01-08", ".xxxxx"],
+        ["2026-02-01", "xxxxxx"],
+        ["2026-03-01", "xxxxx."],
+        ["2026-03-08", "xxxxx."],
+      ]),
+    ).toBeNull();
+  });
+
+  it("doesn't attribute a run just because the other route never recorded a station", () => {
+    // December MMCT→KOTA, April BVI→NDLS (KOTA never recorded); 02-01 lies within both spans
+    const split = routeVariants(
+      hist([
+        ["2025-12-01", "xxxx.."],
+        ["2025-12-08", "xxxx.."],
+        ["2026-02-01", "..xx.."],
+        ["2026-04-01", "..x.xx"],
+        ["2026-04-08", "..x.xx"],
+      ]),
+    )!;
+    expect(split.variants.map((v) => [v.from, v.to, v.runs])).toEqual([
+      ["MMCT", "KOTA", 2],
+      ["BVI", "NDLS", 2],
+    ]);
+    expect(split.unassigned_runs).toBe(1);
+  });
+
+  it("a third route's runs may cover both other routes' marking stations (04001-like)", () => {
+    // Dec MMCT→NDLS, Feb DDR→NDLS, May DDR→NZM: Feb records NDLS (marks Dec vs May) and DDR (marks May vs Dec)
+    expect(
+      ends([
+        ["2025-12-07", "x.xx.x"],
+        ["2025-12-14", "x.xx.x"],
+        ["2026-02-27", ".xxx.x"],
+        ["2026-03-06", ".xxx.x"],
+        ["2026-05-01", ".xxxx."],
+        ["2026-05-08", ".xxxx."],
+      ]),
+    ).toEqual([
+      ["MMCT", "NDLS", 2],
+      ["DDR", "NDLS", 2],
+      ["DDR", "NZM", 2],
+    ]);
+  });
+
+  it("doesn't attribute a run that recorded a station only another route recorded", () => {
+    const split = routeVariants(
+      hist([
+        ["2025-12-01", "xx.xx."],
+        ["2025-12-08", "x..xx."], // Dec MMCT→NZM never records BVI
+        ["2026-02-01", ".xx..."], // DDR (Dec) and BVI (Apr only) → left out
+        ["2026-04-01", "..xxxx"],
+        ["2026-04-08", "..xxxx"],
+      ]),
+    )!;
+    expect(split.variants.map((v) => [v.from, v.to, v.runs, v.period.to])).toEqual([
+      ["MMCT", "NZM", 2, "2025-12-08"],
+      ["BVI", "NDLS", 2, "2026-04-08"],
+    ]);
+    expect(split.unassigned_runs).toBe(1);
+  });
+
+  it("a single station is not a route", () => {
+    expect(
+      ends([
+        ["01-01", "x....."],
+        ["01-08", "x....."],
+        ["03-01", ".....x"],
+        ["03-08", ".....x"],
+      ]),
+    ).toBeNull();
+  });
+
+  it("averages-only, empty or single-route histories have no split", () => {
+    expect(routeVariants(base({ runs: null }))).toBeNull();
+    expect(ends([["01-01", "......"]])).toBeNull();
+    expect(
+      ends([
+        ["01-01", "x.xx.x"],
+        ["01-02", "x.xx.x"],
+      ]),
+    ).toBeNull();
   });
 });

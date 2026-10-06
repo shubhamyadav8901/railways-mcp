@@ -51,6 +51,29 @@ async function client(providers: PunctualitySource[]): Promise<Client> {
 }
 const parse = (r: any) => JSON.parse(r.content[0].text);
 
+const reused = src("reused", async (n): Promise<DelayHistory> => ({
+  train_number: n,
+  measure: "unspecified",
+  stations: [
+    { code: "AAA", name: "Alpha" },
+    { code: "BBB", name: "Bravo" },
+    { code: "CCC", name: "Charlie" },
+    { code: "DDD", name: "Delta" },
+  ],
+  // winter: AAA→CCC (on time); summer: BBB→DDD (late)
+  runs: [
+    { date: "2025-12-01", delays: [0, 5, 10, null] },
+    { date: "2025-12-08", delays: [0, 5, 10, null] },
+    { date: "2026-05-01", delays: [null, 60, 120, 180] },
+    { date: "2026-05-08", delays: [null, 60, 120, 180] },
+    { date: "2026-05-15", delays: [null, 60, 120, 180] },
+  ],
+  averages: null,
+  period: { from: "2025-12-01", to: "2026-05-15" },
+  window_days: null,
+  window_label: "last year (reused)",
+}));
+
 describe("get_punctuality", () => {
   it("reports per-station statistics with period, run count and cross-checks", async () => {
     const c = await client([perRun, averagesOnly]);
@@ -68,6 +91,23 @@ describe("get_punctuality", () => {
     expect(bravo.cross_check).toMatchObject({ status: "conflict", values: { runs: 22.9, avgs: 60 } });
     expect(r.stations[0].cross_check.status).toBe("corroborated");
     expect(r.cross_checked_with[0]).toMatchObject({ provider: "avgs", window: "last 7 days (avgs)" });
+    expect(r.route_variants).toBeUndefined();
+  });
+
+  it("splits a reused train number's runs by route and says the combined figures mix them (#32)", async () => {
+    const c = await client([reused]);
+    const r = parse(await c.callTool({ name: "get_punctuality", arguments: { train_number: "04001", period: "1y" } }));
+    expect(r.runs_counted).toBe(5);
+    expect(r.route_variants.map((v: any) => [v.from, v.to, v.runs, v.period])).toEqual([
+      ["AAA", "CCC", 2, { from: "2025-12-01", to: "2025-12-08" }],
+      ["BBB", "DDD", 3, { from: "2026-05-01", to: "2026-05-15" }],
+    ]);
+    // combined CCC mixes 10 and 120; the summer variant alone is 120
+    expect(r.stations.find((s: any) => s.code === "CCC").avg_delay_minutes).toBe(76);
+    expect(r.route_variants[1].stations.find((s: any) => s.code === "CCC").avg_delay_minutes).toBe(120);
+    expect(r.notes.join(" ")).toMatch(/ran on 2 different routes.*latest is BBB→DDD/);
+    const one = parse(await c.callTool({ name: "get_punctuality", arguments: { train_number: "04001", period: "1y", station: "CCC" } }));
+    expect(one.route_variants.map((v: any) => v.stations.map((s: any) => s.code))).toEqual([["CCC"], ["CCC"]]);
   });
 
   it("filters to one station and rejects stations not on the route", async () => {
