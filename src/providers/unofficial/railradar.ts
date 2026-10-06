@@ -155,7 +155,9 @@ export function parseDelay(text: string, status: number, number: string): DelayH
   const data = body.data;
   if (!isObj(data) || String(data.trainNumber) !== number) throw unexpected("missing or mismatched trainNumber");
   const route = data.route;
-  if (!Array.isArray(route) || route.length === 0) throw unexpected("empty route");
+  if (!Array.isArray(route)) throw unexpected("no route");
+  // A known train with no route entries: RailRadar has nothing for it (seen for seasonal specials).
+  if (route.length === 0) throw new RailError("NOT_FOUND", `RailRadar has no route data for train ${number}`, PROVIDER);
 
   const stations: DelayHistory["stations"] = [];
   const averages: NonNullable<DelayHistory["averages"]> = [];

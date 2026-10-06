@@ -111,6 +111,55 @@ describe("ETrainProvider.delayHistory", () => {
     expect((await railError(provider().delayHistory("99999", "1m"))).code).toBe("NOT_FOUND");
   });
 
+  // A seasonal special with no runs this month: the bare page has no data but still links the slug (#27).
+  const special = (url: string): Reply => {
+    if (url === "https://etrain.info/train/04001/history") return { body: fixture("04001-empty.html") };
+    if (url === "https://etrain.info/train/Sample-Spl-04001/history?d=3m") return { body: fixture("04001-3m.html") };
+    if (url === "https://etrain.info/train/Sample-Spl-04001/history?d=1y") {
+      return { body: fixture("04001-empty.html").replaceAll("for this month", "for last year") };
+    }
+    throw new Error(`unexpected url ${url}`);
+  };
+
+  it("fetches a longer period even when the bare 'this month' page has no runs", async () => {
+    const f = stubFetch(special);
+    const h = await provider().delayHistory("04001", "3m");
+    expect(f.mock.calls.map((c) => String(c[0]))).toEqual([
+      "https://etrain.info/train/04001/history",
+      "https://etrain.info/train/Sample-Spl-04001/history?d=3m",
+    ]);
+    expect(h.window_label).toBe("last 3 months (etrain.info)");
+    expect(h.runs).toEqual([
+      { date: "2026-07-09", delays: [0, 95] },
+      { date: "2026-07-16", delays: [5, 140] },
+    ]);
+  });
+
+  it("no runs in the requested period → NOT_FOUND naming the period and the longer ones", async () => {
+    stubFetch(special);
+    const e = await railError(provider().delayHistory("04001", "1m"));
+    expect(e.code).toBe("NOT_FOUND");
+    expect(e.message).toContain("no runs of train 04001 for this month");
+    expect(e.message).toContain("3m, 6m, 1y");
+  });
+
+  it("no runs in the longest period → NOT_FOUND without suggesting a longer one", async () => {
+    stubFetch(special);
+    const e = await railError(provider().delayHistory("04001", "1y"));
+    expect(e.code).toBe("NOT_FOUND");
+    expect(e.message).toContain("no runs of train 04001 for last year");
+    expect(e.message).not.toContain("may include");
+  });
+
+  it("a history page with neither data nor a 'not available' notice → UPSTREAM_UNAVAILABLE, not cached", async () => {
+    const half = fixture("04001-empty.html").replace(/Historical running data[^<]*/, "");
+    const f = stubFetch(() => ({ body: half }));
+    const p = provider();
+    expect((await railError(p.delayHistory("04001", "1m"))).code).toBe("UPSTREAM_UNAVAILABLE");
+    await railError(p.delayHistory("04001", "1m"));
+    expect(f).toHaveBeenCalledTimes(2);
+  });
+
   it("garbage HTML → UPSTREAM_UNAVAILABLE", async () => {
     stubFetch(() => ({ body: "<html><body>maintenance</body></html>" }));
     expect((await railError(provider().delayHistory("12951", "1m"))).code).toBe("UPSTREAM_UNAVAILABLE");
