@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>Running History of SAMPLE SPECIAL (04001) for last 3 months</title></head>
+<body>
+<a href="/train/Sample-Spl-04001/history">Running History</a>
+<a href="#AAA" etitle="<%showRunStatStn(this)%>" class="runStatStn blocklink">
+<div>
+ALPHA TERMINUS (AAA)
+</div>
+</a>
+<a href="#BBB" etitle="<%showRunStatStn(this)%>" class="runStatStn blocklink">
+<div>
+BETA JN (BBB)
+</div>
+</a>
+<script>
+et.rsStat = [];
+et.rsStat.primaryData = [ ['Stations','Right Time', 'Slight Delay', 'Significant Delay', 'Cancelled/Unknown', {'type': 'string', 'role': 'tooltip', 'p': {'html': true}}],['AAA', 2, 0, 0, 0, 0.5],['BBB', 0, 1, 1, 0, 1.5]];
+et.rsStat.tooltipData = [['Date',{'type':'number','label':'AAA'},{'type':'number','label':'BBB'}],[new Date(2026,6,09),0,95],[new Date(2026,6,16),5,140]];
+</script>
+</body>
+</html>

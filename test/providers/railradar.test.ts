@@ -95,6 +95,16 @@ describe("RailRadarProvider.delayHistory", () => {
     expect(e.message).toMatch(/unexpected response shape/);
   });
 
+  it("a known train with an empty route (no data, e.g. a seasonal special) → NOT_FOUND", async () => {
+    const body = JSON.parse(fixture("12951.json"));
+    body.data.route = [];
+    stubFetch(() => ({ body: JSON.stringify(body) }));
+    const e = await railError(provider().delayHistory("12951", "1m"));
+    expect(e.code).toBe("NOT_FOUND");
+    expect(e.message).toContain("no route data for train 12951");
+    expect((await railError(provider().getSchedule("12951"))).code).toBe("NOT_FOUND");
+  });
+
   it("mismatched train number → UPSTREAM_UNAVAILABLE", async () => {
     stubFetch(() => ({ body: fixture("12301.json") }));
     expect((await railError(provider().delayHistory("12951", "1m"))).code).toBe("UPSTREAM_UNAVAILABLE");

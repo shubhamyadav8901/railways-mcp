@@ -10,6 +10,10 @@
  *    /train/<number>/history (and any wrong slug) 301-redirects to the
  *    canonical slug but DROPS the `?d=` query, so the canonical slug is read
  *    from the bare page's own links first. Unknown trains return HTTP 404.
+ *  - A window with no runs (common for seasonal specials) has the same title
+ *    and links but no inline data, only "Historical running data of queried
+ *    train for selected duration is not available." That is NOT_FOUND for the
+ *    window, not a broken page; the bare page still gives the slug.
  *  - The window is stated in the <title>: "Running History of <NAME> (<no>)
  *    for last week|this month|last 3 months|last 6 months|last year".
  *    "this month" (d=1m) is a rolling ~30 runs, not the calendar month.
@@ -90,11 +94,21 @@ export class ETrainProvider implements PunctualitySource {
       throw new RailError("INVALID_INPUT", `Unsupported history period "${period}"`, PROVIDER);
     }
     // The bare URL redirects to the canonical slug (dropping ?d=), so read the slug from it.
+    // The bare page may have no runs (e.g. a seasonal special); it still links the slug.
     const bare = await this.getPage(`${HOST}/train/${number}/history`, number);
     let page = bare;
     if (!(period === "1m" && statedWindow(bare) === "this month")) {
       const slug = canonicalSlug(bare, number);
       page = await this.getPage(`${HOST}/train/${slug}/history?d=${period}`, number);
+    }
+    if (hasNoRuns(page)) {
+      const longer = PERIODS.slice(PERIODS.indexOf(period) + 1);
+      throw new RailError(
+        "NOT_FOUND",
+        `etrain.info lists no runs of train ${number} for ${statedWindow(page) ?? period}` +
+          (longer.length ? `; a longer period (${longer.join(", ")}) may include earlier runs` : ""),
+        PROVIDER,
+      );
     }
     return parseHistoryPage(page, number);
   }
@@ -112,7 +126,13 @@ export class ETrainProvider implements PunctualitySource {
       if (res.status < 200 || res.status >= 300) {
         throw new RailError("UPSTREAM_UNAVAILABLE", `etrain.info returned HTTP ${res.status}`, PROVIDER);
       }
-      if (!res.text.includes("et.rsStat.tooltipData")) throw unexpected("no running-history data on the page");
+      const title = /<title>\s*Running History of [^<]*?\((\d{5})\)/.exec(res.text);
+      if (!title) throw unexpected("no running-history title");
+      if (title[1] !== number) throw unexpected(`page is for train ${title[1]}, not ${number}`);
+      // Cache only usable pages: with history data, or explicitly stating there are no runs.
+      if (!res.text.includes("et.rsStat.tooltipData") && !NO_RUNS.test(res.text)) {
+        throw unexpected("no running-history data on the page");
+      }
       return res.text;
     });
     return value;
@@ -130,6 +150,13 @@ function canonicalSlug(html: string, number: string): string {
   const m = re.exec(html);
   if (!m) throw unexpected("no canonical train link");
   return m[1]!;
+}
+
+const NO_RUNS = /running data of queried train for selected duration is not available/i;
+
+/** The page states it has no runs for its window (and carries no history data). */
+function hasNoRuns(html: string): boolean {
+  return !html.includes("et.rsStat.tooltipData") && NO_RUNS.test(html);
 }
 
 /** The window as the page states it in its <title>, e.g. "last week". */
