@@ -36,6 +36,7 @@ import { RailError } from "../../core/errors.js";
 import type { DelayHistory } from "../../core/types.js";
 import { TtlCache } from "../../lib/cache.js";
 import { httpGet, RateLimiter } from "../../lib/http.js";
+import { escapeRegExp } from "../../lib/regexp.js";
 import type { HistoryPeriod, ProviderInfo, PunctualitySource } from "../types.js";
 import { OPERATIONAL_UPSTREAM } from "../types.js";
 import { BROWSER_UA } from "./shared.js";
@@ -256,7 +257,7 @@ function isObject(v: JsValue | undefined): v is { [k: string]: JsValue } {
 
 /** Parses the array literal assigned by `<name> = [...]` (first occurrence). */
 function readAssigned(src: string, name: string): JsValue {
-  const re = new RegExp(`${name.replace(/\./g, "\\.")}\\s*=\\s*\\[`);
+  const re = new RegExp(`${escapeRegExp(name)}\\s*=\\s*\\[`);
   const m = re.exec(src);
   if (!m) throw unexpected(`${name} not found`);
   return new LiteralParser(src, m.index + m[0].length - 1).parseValue();
