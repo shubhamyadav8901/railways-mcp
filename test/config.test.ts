@@ -1,6 +1,9 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildContext, loadConfig } from "../src/config.js";
 import { RailError } from "../src/core/errors.js";
+import { SERVER_INFO } from "../src/mcp.js";
 import { LocalTimetableProvider } from "../src/providers/timetable/local-timetable.js";
 import type { Capability } from "../src/providers/types.js";
 import { sampleProvider, sampleTimetable, train } from "./helpers.js";
@@ -110,5 +113,34 @@ describe("ConfirmTkt's seasonal gate is wired to the official timetable", () => 
     expect(res.data.valid).toEqual(REST);
     expect(res.source.notes?.join(" ")).toMatch(/Fell back from confirmtkt: ConfirmTkt only publishes the timings in force today/);
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("blank settings", () => {
+  it("empty or whitespace values fall back to the defaults", () => {
+    const blank = { PORT: "", HOST: " ", DATA_DIR: "", NOMINATIM_URL: "", NOMINATIM_EMAIL: "  " };
+    const cfg = loadConfig(blank);
+    const defaults = loadConfig({});
+    expect(cfg.port).toBe(3000);
+    expect(cfg.host).toBe("0.0.0.0");
+    expect(cfg.dataDir).toBe(join(process.cwd(), "data"));
+    expect(cfg.nominatimUrl).toBeUndefined();
+    expect(cfg.nominatimEmail).toBeUndefined();
+    expect(cfg).toEqual(defaults);
+  });
+
+  it("set values are still used", () => {
+    const cfg = loadConfig({ PORT: "8080", HOST: "127.0.0.1", DATA_DIR: "/srv/data", NOMINATIM_URL: "https://geo.example" });
+    expect(cfg.port).toBe(8080);
+    expect(cfg.host).toBe("127.0.0.1");
+    expect(cfg.dataDir).toBe("/srv/data");
+    expect(cfg.nominatimUrl).toBe("https://geo.example");
+  });
+});
+
+describe("server version", () => {
+  it("matches package.json", () => {
+    const pkg = JSON.parse(readFileSync(join(import.meta.dirname, "..", "package.json"), "utf8")) as { version: string };
+    expect(SERVER_INFO.version).toBe(pkg.version);
   });
 });

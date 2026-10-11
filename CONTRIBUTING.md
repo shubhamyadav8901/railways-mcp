@@ -16,7 +16,7 @@ These keep the project trustworthy. Pull requests that break them can't be merge
 
 ## Development setup
 
-Requirements: Node.js 22+. Python 3.11+ is needed only to rebuild the timetable data.
+Requirements: Node.js 22+. Python 3.13+ is needed only to rebuild the timetable data.
 
 ```bash
 git clone https://github.com/shubhamyadav8901/railways-mcp.git

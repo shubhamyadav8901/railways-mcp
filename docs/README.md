@@ -1,6 +1,6 @@
 # Design documentation
 
-Design of the Indian Railways MCP server (v0.1.0): a stateless Streamable-HTTP MCP server that gives LLM clients read-only, cross-checked Indian Railways data. The brief is [`REQUIREMENTS.md`](../REQUIREMENTS.md); usage and configuration are in the [project README](../README.md).
+Design of the Indian Railways MCP server (v0.3.0): a stateless Streamable-HTTP MCP server that gives LLM clients read-only, cross-checked Indian Railways data. The brief is [`REQUIREMENTS.md`](../REQUIREMENTS.md); usage and configuration are in the [project README](../README.md).
 
 ## Documents
 

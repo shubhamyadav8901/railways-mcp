@@ -15,6 +15,7 @@ import type { TrainsBetweenSource } from "./providers/types.js";
 
 export interface Config {
   port: number;
+  host: string;
   dataDir: string;
   /** Unofficial adapters to enable, e.g. ["confirmtkt", "erail"]. Off by default. */
   unofficial: Set<string>;
@@ -34,6 +35,9 @@ export interface Config {
 export const UNOFFICIAL_SOURCES = ["confirmtkt", "erail", "etrain", "ntes", "railradar"] as const;
 export const PRIMARY_SOURCES = ["official", "confirmtkt"] as const;
 export type PrimarySource = (typeof PRIMARY_SOURCES)[number];
+
+/** A setting that is unset or blank (e.g. `DATA_DIR=` copied from .env.example) counts as not set. */
+const setting = (v: string | undefined): string | undefined => v?.trim() || undefined;
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const unofficial = new Set(
@@ -66,12 +70,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const geocoder = (env.GEOCODER ?? "nominatim").toLowerCase();
   if (geocoder !== "nominatim" && geocoder !== "off") throw new Error(`GEOCODER must be "nominatim" or "off"`);
   return {
-    port: Number(env.PORT ?? 3000),
-    dataDir: env.DATA_DIR ?? join(process.cwd(), "data"),
+    port: Number(setting(env.PORT) ?? 3000),
+    host: setting(env.HOST) ?? "0.0.0.0",
+    dataDir: setting(env.DATA_DIR) ?? join(process.cwd(), "data"),
     unofficial,
     geocoder,
-    nominatimUrl: env.NOMINATIM_URL,
-    nominatimEmail: env.NOMINATIM_EMAIL,
+    nominatimUrl: setting(env.NOMINATIM_URL),
+    nominatimEmail: setting(env.NOMINATIM_EMAIL),
     verifyBudgetMs,
     confirmtkt: { clientId: env.CONFIRMTKT_CLIENT_ID?.trim() || undefined, apiKey: env.CONFIRMTKT_API_KEY?.trim() || undefined },
     erailRouteKey: env.ERAIL_ROUTE_KEY?.trim() || undefined,

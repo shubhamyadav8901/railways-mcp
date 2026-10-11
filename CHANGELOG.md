@@ -9,6 +9,7 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ### Fixed
 - **Punctuality for seasonal specials (#27):** etrain.info's longer periods (`3m`, `6m`, `1y`) are now fetched even when the train has no runs "this month", so specials such as 04001 get their earlier runs. A period with no runs is reported as `NOT_FOUND` naming the period (and suggesting longer ones) instead of an "unexpected response shape" error. RailRadar's empty route for a known train is likewise `NOT_FOUND`.
+- **Blank settings:** `PORT`, `HOST`, `DATA_DIR`, `NOMINATIM_URL` and `NOMINATIM_EMAIL` left empty (as in `.env.example`) now fall back to their defaults instead of stopping the server at startup. The served version and default User-Agent now come from `package.json`.
 
 ## [0.3.0] - 2026-10-05
 

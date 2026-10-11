@@ -55,7 +55,7 @@ async function main(): Promise<void> {
     `loaded ${ctx.timetables.map((t) => `${t.info.id} (${t.trainCount} trains)`).join(", ")} in ${Date.now() - started} ms; ` +
       `disabled: ${ctx.disabled.map((d) => d.source).join(", ") || "none"}`,
   );
-  const host = process.env.HOST ?? "0.0.0.0";
+  const host = cfg.host;
   if ((host === "0.0.0.0" || host === "::") && !cfg.allowedHosts) {
     console.warn("ALLOWED_HOSTS is not set: Host-header validation is off. Set it to your public hostname in production.");
   }

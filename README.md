@@ -129,12 +129,17 @@ All settings are optional; see `.env.example`.
 
 | Variable | Purpose |
 |---|---|
+| `PORT` | Listen port (default `3000`) |
+| `HOST` | Listen address (default `0.0.0.0`) |
+| `DATA_DIR` | Directory for timetable datasets (default `./data`) |
 | `ALLOWED_HOSTS` | Host-header allow-list (default in compose: `localhost,127.0.0.1`) |
 | `ENABLE_UNOFFICIAL_SOURCES` | `confirmtkt,erail,etrain,ntes,railradar` (opt-in; see [DISCLAIMER.md](DISCLAIMER.md)) |
 | `CONFIRMTKT_CLIENT_ID`, `CONFIRMTKT_API_KEY`, `ERAIL_ROUTE_KEY` | Client settings those sources need; not included in this repository |
 | `PRIMARY_SOURCE` | `official` (default) or `confirmtkt`: whose answer is shown for stations, schedules and trains between (see [Data sources](#data-sources)) |
 | `GEOCODER` | `nominatim` (default) or `off` |
+| `NOMINATIM_URL` | Override Nominatim base URL (optional) |
 | `NOMINATIM_EMAIL`, `HTTP_USER_AGENT` | Identify your instance to upstream services |
+| `VERIFY_BUDGET_MS` | Cross-check time budget per tool call in ms (default `20000`; `0` disables) |
 
 ## Optional: hosting
 
